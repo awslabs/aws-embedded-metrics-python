@@ -1,0 +1,115 @@
+from aws_embedded_metrics import constants, utils
+from aws_embedded_metrics.logger.metric import Metric
+from typing import List, Dict, Any
+
+
+class MetricsContext(object):
+    """
+    Stores metrics and their associated properties and dimensions.
+    """
+
+    def __init__(
+        self,
+        namespace: str = None,
+        properties: Dict[str, Any] = None,
+        dimensions: List[Dict[str, str]] = None,
+        default_dimensions: Dict[str, str] = None,
+    ):
+
+        self.namespace: str = namespace or constants.DEFAULT_NAMESPACE
+        self.properties: Dict[str, Any] = properties or {"Timestamp": utils.now()}
+        self.dimensions: List[Dict[str, str]] = dimensions or []
+        self.default_dimensions: Dict[str, str] = default_dimensions or {}
+        self.metrics: Dict[str, Metric] = {}
+
+    def put_metric(self, key: str, value: float, unit: str = None) -> None:
+        """
+        Adds a metric measurement to the context.
+        Multiple calls using the same key will be stored as an
+        array of scalar values.
+        ```
+        context.put_metric("Latency", 100, "Milliseconds")
+        ```
+        """
+        metric = self.metrics.get(key)
+        if metric:
+            # TODO: we should log a warning if the unit has been changed
+            metric.add_value(value)
+        else:
+            self.metrics[key] = Metric(value, unit)
+
+    def put_dimension(self, dimensions: Dict[str, str]) -> None:
+        """
+        Adds dimensions to the context.
+        ```
+        context.put_dimension({ "k1": "v1", "k2": "v2" })
+        ```
+        """
+        if dimensions is None:
+            # TODO add ability to define failure strategy
+            return
+
+        if self.__has_default_dimensions():
+            merged_dimensions: Dict = {}
+            merged_dimensions.update(self.default_dimensions)
+            merged_dimensions.update(dimensions)
+            self.dimensions.append(merged_dimensions)
+        else:
+            self.dimensions.append(dimensions)
+
+    def set_dimensions(self, dimensionSets: List[Dict[str, str]]) -> None:
+        """
+        Overwrite all dimensions.
+        ```
+        context.set_dimensions([
+            { "k1": "v1" },
+            { "k1": "v1", "k2": "v2" }])
+        ```
+        """
+        self.dimensions = dimensionSets
+
+    def set_default_dimensions(self, default_dimensions: Dict) -> None:
+        """
+        Sets default dimensions for all other dimensions that get added
+        to the context.
+        If no custom dimensions are specified, the metrics will be emitted
+        with the defaults.
+        If custome dimensions are specified, they will be prepended with
+        the default dimensions.
+        """
+        self.default_dimensions = default_dimensions
+
+    def set_property(self, key: str, value: Any) -> None:
+        self.properties[key] = value
+
+    def get_dimensions(self) -> List[Dict]:
+        """
+        Returns the current dimensions on the context
+        """
+        if not self.__has_default_dimensions():
+            return self.dimensions
+
+        if len(self.dimensions) == 0:
+            return [self.default_dimensions]
+
+        return self.dimensions
+
+    def __has_default_dimensions(self) -> bool:
+        return self.default_dimensions is not None and len(self.default_dimensions) > 0
+
+    def create_copy_with_context(self) -> "MetricsContext":
+        """
+        Creates a deep copy of the context excluding metrics.
+        """
+        new_properties: Dict = {}
+        new_properties.update(self.properties)
+
+        new_dimensions: List[Dict] = []
+        new_dimensions = new_dimensions + self.dimensions
+
+        new_default_dimensions: Dict = {}
+        new_default_dimensions.update(self.default_dimensions)
+
+        return MetricsContext(
+            self.namespace, new_properties, new_dimensions, new_default_dimensions
+        )
