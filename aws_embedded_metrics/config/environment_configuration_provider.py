@@ -1,5 +1,4 @@
 import os
-from typing import TypeVar
 from aws_embedded_metrics.config.configuration import Configuration
 
 ENV_VAR_PREFIX = "AWS_EMF"
@@ -10,8 +9,6 @@ SERVICE_TYPE = "SERVICE_TYPE"
 LOG_GROUP_NAME = "LOG_GROUP_NAME"
 LOG_STREAM_NAME = "LOG_STREAM_NAME"
 AGENT_ENDPOINT = "AGENT_ENDPOINT"
-
-T = TypeVar("T")
 
 
 class EnvironmentConfigurationProvider:

@@ -74,7 +74,7 @@ class MetricsContext(object):
         to the context.
         If no custom dimensions are specified, the metrics will be emitted
         with the defaults.
-        If custome dimensions are specified, they will be prepended with
+        If custom dimensions are specified, they will be prepended with
         the default dimensions.
         """
         self.default_dimensions = default_dimensions
@@ -113,3 +113,7 @@ class MetricsContext(object):
         return MetricsContext(
             self.namespace, new_properties, new_dimensions, new_default_dimensions
         )
+
+    @staticmethod
+    def empty() -> "MetricsContext":
+        return MetricsContext()
