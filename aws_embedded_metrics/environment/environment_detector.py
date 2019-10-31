@@ -11,18 +11,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import abc
-from aws_embedded_metrics.logger.metrics_context import MetricsContext
+from aws_embedded_metrics.environment import Environment
+from aws_embedded_metrics.environment.lambda_environment import LambdaEnvironment
 
 
-class Sink(abc.ABC):
-    """The mechanism by which logs are sent to their destination."""
-
-    @staticmethod
-    @abc.abstractmethod
-    def name() -> str:
-        """The name of the sink."""
-
-    @abc.abstractmethod
-    def accept(self, context: MetricsContext) -> None:
-        """Flushes the metrics context to the sink."""
+async def resolve_environment() -> Environment:
+    # TODO: this should support agent-based environments
+    return LambdaEnvironment()

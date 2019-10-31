@@ -11,18 +11,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import abc
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
+from aws_embedded_metrics.logger.metrics_logger import MetricsLogger
+from aws_embedded_metrics.environment.environment_detector import resolve_environment
 
 
-class Sink(abc.ABC):
-    """The mechanism by which logs are sent to their destination."""
-
-    @staticmethod
-    @abc.abstractmethod
-    def name() -> str:
-        """The name of the sink."""
-
-    @abc.abstractmethod
-    def accept(self, context: MetricsContext) -> None:
-        """Flushes the metrics context to the sink."""
+def create_metrics_logger() -> MetricsLogger:
+    context = MetricsContext.empty()
+    logger = MetricsLogger(resolve_environment, context)
+    return logger
