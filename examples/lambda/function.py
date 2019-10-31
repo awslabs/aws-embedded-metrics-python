@@ -1,4 +1,4 @@
-from aws_embedded_metrics.metric_scope import metric_scope
+from aws_embedded_metrics.logger import metric_scope
 
 
 @metric_scope

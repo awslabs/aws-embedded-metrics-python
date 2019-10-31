@@ -14,7 +14,7 @@
 from aws_embedded_metrics.environment import Environment
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.config import get_config
-from typing import Any, Dict
+from typing import Any, Awaitable, Callable, Dict
 
 Config = get_config()
 
@@ -70,4 +70,6 @@ class MetricsLogger:
         return self
 
     def new(self) -> "MetricsLogger":
-        return MetricsLogger(self.env_provider, self.context.create_copy_with_context())
+        return MetricsLogger(
+            self.resolve_environment, self.context.create_copy_with_context()
+        )
