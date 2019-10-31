@@ -3,6 +3,7 @@ from aws_embedded_metrics import utils
 from _pytest.monkeypatch import MonkeyPatch
 import pytest
 from faker import Faker
+
 fake = Faker()
 
 
@@ -37,8 +38,7 @@ def test_can_set_property(mock_time):
     context.properties[property_key] = property_value
 
     # assert
-    assert context.properties == {
-        "Timestamp": mock_time, property_key: property_value}
+    assert context.properties == {"Timestamp": mock_time, property_key: property_value}
 
 
 def test_put_dimension_adds_to_dimensions(mock_time):
@@ -49,7 +49,7 @@ def test_put_dimension_adds_to_dimensions(mock_time):
     dimension_value = fake.word()
 
     # act
-    context.put_dimension({dimension_key:  dimension_value})
+    context.put_dimensions({dimension_key: dimension_value})
 
     # assert
     assert context.dimensions == [{dimension_key: dimension_value}]
@@ -60,10 +60,10 @@ def test_get_dimensions_returns_only_custom_dimensions_if_no_default_dimensions_
     context = MetricsContext()
     dimension_key = fake.word()
     dimension_value = fake.word()
-    expected_dimensions = {dimension_key:  dimension_value}
+    expected_dimensions = {dimension_key: dimension_value}
 
     context.set_default_dimensions(None)
-    context.put_dimension(expected_dimensions)
+    context.put_dimensions(expected_dimensions)
 
     # act
     actual_dimensions = context.get_dimensions()
@@ -77,10 +77,10 @@ def test_get_dimensions_returns_only_custom_dimensions_if_default_dimensions_are
     context = MetricsContext()
     dimension_key = fake.word()
     dimension_value = fake.word()
-    expected_dimensions = {dimension_key:  dimension_value}
+    expected_dimensions = {dimension_key: dimension_value}
 
     context.set_default_dimensions({})
-    context.put_dimension(expected_dimensions)
+    context.put_dimensions(expected_dimensions)
 
     # act
     actual_dimensions = context.get_dimensions()
@@ -94,7 +94,7 @@ def test_get_dimensions_returns_default_dimensions_if_custom_dimensions_not_set(
     context = MetricsContext()
     dimension_key = fake.word()
     dimension_value = fake.word()
-    expected_dimensions = {dimension_key:  dimension_value}
+    expected_dimensions = {dimension_key: dimension_value}
     context.set_default_dimensions(expected_dimensions)
 
     # act
@@ -113,12 +113,13 @@ def test_get_dimensions_returns_merged_custom_and_default_dimensions():
     default_dimension_key = fake.word()
     default_dimension_value = fake.word()
 
-    expected_dimensions = {default_dimension_key: default_dimension_value,
-                           custom_dimension_key:  custom_dimension_value}
+    expected_dimensions = {
+        default_dimension_key: default_dimension_value,
+        custom_dimension_key: custom_dimension_value,
+    }
 
-    context.set_default_dimensions(
-        {default_dimension_key: default_dimension_value})
-    context.put_dimension({custom_dimension_key: custom_dimension_value})
+    context.set_default_dimensions({default_dimension_key: default_dimension_value})
+    context.put_dimensions({custom_dimension_key: custom_dimension_value})
 
     # act
     actual_dimensions = context.get_dimensions()
@@ -154,7 +155,7 @@ def test_put_metric_uses_None_unit_if_not_provided():
 
     # assert
     metric = context.metrics[metric_key]
-    assert metric.unit == 'None'
+    assert metric.unit == "None"
 
 
 def test_create_copy_with_context_creates_new_instance():
@@ -200,7 +201,7 @@ def test_create_copy_with_context_copies_dimensions():
     context = MetricsContext()
     dimension_key = fake.word()
     dimension_value = fake.word()
-    context.put_dimension({dimension_key: dimension_value})
+    context.put_dimensions({dimension_key: dimension_value})
 
     # act
     new_context = context.create_copy_with_context()
@@ -227,7 +228,7 @@ def test_set_dimensions_overwrites_all_dimensions():
     # arrange
     context = MetricsContext()
     context.set_default_dimensions({fake.word(): fake.word})
-    context.put_dimension({fake.word(): fake.word})
+    context.put_dimensions({fake.word(): fake.word})
 
     expected_dimensions = {fake.word(): fake.word}
 

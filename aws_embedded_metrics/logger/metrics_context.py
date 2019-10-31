@@ -21,6 +21,7 @@ class MetricsContext(object):
         self.dimensions: List[Dict[str, str]] = dimensions or []
         self.default_dimensions: Dict[str, str] = default_dimensions or {}
         self.metrics: Dict[str, Metric] = {}
+        self.should_use_default_dimensions = True
 
     def put_metric(self, key: str, value: float, unit: str = None) -> None:
         """
@@ -38,24 +39,18 @@ class MetricsContext(object):
         else:
             self.metrics[key] = Metric(value, unit)
 
-    def put_dimension(self, dimensions: Dict[str, str]) -> None:
+    def put_dimensions(self, dimensions: Dict[str, str]) -> None:
         """
         Adds dimensions to the context.
         ```
-        context.put_dimension({ "k1": "v1", "k2": "v2" })
+        context.put_dimensions({ "k1": "v1", "k2": "v2" })
         ```
         """
         if dimensions is None:
             # TODO add ability to define failure strategy
             return
 
-        if self.__has_default_dimensions():
-            merged_dimensions: Dict = {}
-            merged_dimensions.update(self.default_dimensions)
-            merged_dimensions.update(dimensions)
-            self.dimensions.append(merged_dimensions)
-        else:
-            self.dimensions.append(dimensions)
+        self.dimensions.append(dimensions)
 
     def set_dimensions(self, dimensionSets: List[Dict[str, str]]) -> None:
         """
@@ -66,6 +61,7 @@ class MetricsContext(object):
             { "k1": "v1", "k2": "v2" }])
         ```
         """
+        self.should_use_default_dimensions = False
         self.dimensions = dimensionSets
 
     def set_default_dimensions(self, default_dimensions: Dict) -> None:
@@ -86,13 +82,23 @@ class MetricsContext(object):
         """
         Returns the current dimensions on the context
         """
+        # user has directly called set_dimensions
+        if not self.should_use_default_dimensions:
+            return self.dimensions
+
         if not self.__has_default_dimensions():
             return self.dimensions
 
         if len(self.dimensions) == 0:
             return [self.default_dimensions]
 
-        return self.dimensions
+        # we have to merge dimensions on the read path
+        # because defaults won't actually get set until the flush
+        # method is called. This allows us to not block the user
+        # code while we're detecting the environment
+        return list(
+            map(lambda custom: {**self.default_dimensions, **custom}, self.dimensions)
+        )
 
     def __has_default_dimensions(self) -> bool:
         return self.default_dimensions is not None and len(self.default_dimensions) > 0
