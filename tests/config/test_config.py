@@ -2,20 +2,9 @@ from aws_embedded_metrics import config
 from faker import Faker
 import os
 from importlib import reload
-import pytest
 
 
 fake = Faker()
-
-
-@pytest.fixture
-def before(self):
-    os.environ["AWS_EMF_ENABLE_DEBUG_LOGGING"] = None
-    os.environ["AWS_EMF_SERVICE_NAME"] = None
-    os.environ["AWS_EMF_SERVICE_TYPE"] = None
-    os.environ["AWS_EMF_LOG_GROUP_NAME"] = None
-    os.environ["AWS_EMF_LOG_STREAM_NAME"] = None
-    os.environ["AWS_EMF_AGENT_ENDPOINT"] = None
 
 
 def get_config():
