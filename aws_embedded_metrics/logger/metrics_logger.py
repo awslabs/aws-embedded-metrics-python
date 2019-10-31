@@ -1,17 +1,31 @@
+# Copyright 2019 Amazon.com, Inc. or its affiliates.
+# Licensed under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from aws_embedded_metrics.environment import Environment
-from aws_embedded_metrics.environment.environment_provider import EnvironmentProvider
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.config import get_config
-from typing import Any, Dict
+from typing import Any, Awaitable, Callable, Dict
 
 Config = get_config()
 
 
 class MetricsLogger:
     def __init__(
-        self, env_provider: EnvironmentProvider, context: MetricsContext = None
+        self,
+        resolve_environment: Callable[..., Awaitable[Environment]],
+        context: MetricsContext = None,
     ):
-        self.env_provider = env_provider
+        self.resolve_environment = resolve_environment
         self.context: MetricsContext = context or MetricsContext.empty()
 
     async def flush(self) -> None:
@@ -19,7 +33,7 @@ class MetricsLogger:
         # MOST of the time this will run synchonrously
         # This only runs asynchronously if executing for the
         # first time in a non-lambda environment
-        environment = await self.env_provider.get()
+        environment = await self.resolve_environment()
 
         self.__configureContextForEnvironment(environment)
         sink = environment.get_sink()
@@ -56,4 +70,6 @@ class MetricsLogger:
         return self
 
     def new(self) -> "MetricsLogger":
-        return MetricsLogger(self.env_provider, self.context.create_copy_with_context())
+        return MetricsLogger(
+            self.resolve_environment, self.context.create_copy_with_context()
+        )

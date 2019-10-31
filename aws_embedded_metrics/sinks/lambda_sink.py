@@ -11,18 +11,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import abc
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
+from aws_embedded_metrics.sinks import Sink
+from aws_embedded_metrics.serializers import Serializer
+from aws_embedded_metrics.serializers.log_serializer import LogSerializer
 
 
-class Sink(abc.ABC):
-    """The mechanism by which logs are sent to their destination."""
+class LambdaSink(Sink):
+    def __init__(self, serializer: Serializer = LogSerializer()):
+        self.serializer = serializer
+
+    def accept(self, context: MetricsContext) -> None:
+        print(self.serializer.serialize(context))
 
     @staticmethod
-    @abc.abstractmethod
     def name() -> str:
-        """The name of the sink."""
-
-    @abc.abstractmethod
-    def accept(self, context: MetricsContext) -> None:
-        """Flushes the metrics context to the sink."""
+        return "LambdaSink"
