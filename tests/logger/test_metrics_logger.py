@@ -1,6 +1,7 @@
 from aws_embedded_metrics import config
 from aws_embedded_metrics.logger import metrics_logger
 from aws_embedded_metrics.sinks import Sink
+from aws_embedded_metrics.environment.environment_provider import EnvironmentProvider
 from aws_embedded_metrics.environment import Environment
 import pytest
 from faker import Faker
@@ -175,12 +176,10 @@ def before():
 
 
 def get_logger_and_sink(mocker):
+    env_provider = mocker.create_autospec(spec=EnvironmentProvider)
     env = mocker.create_autospec(spec=Environment)
-
-    def env_provider():
-        result_future = Future()
-        result_future.set_result(env)
-        return result_future
+    env_provider.get.return_value = Future()
+    env_provider.get.return_value.set_result(env)
 
     sink = mocker.create_autospec(spec=Sink)
     env.get_sink.return_value = sink
