@@ -16,6 +16,8 @@ import inspect
 import asyncio
 from functools import wraps
 
+name = "metric_scope"
+
 
 def metric_scope(fn):  # type: ignore
     logger = create_metrics_logger()
