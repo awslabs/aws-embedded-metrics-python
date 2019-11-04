@@ -28,24 +28,19 @@ sink = LambdaSink()
 
 
 class LambdaEnvironment(Environment):
-    @staticmethod
-    def probe() -> bool:
+    async def probe(self) -> bool:
         return len(get_env("AWS_LAMBDA_FUNCTION_NAME")) > 0
 
-    @staticmethod
-    def get_name() -> str:
-        return LambdaEnvironment.get_log_group_name()
+    def get_name(self) -> str:
+        return self.get_log_group_name()
 
-    @staticmethod
-    def get_type() -> str:
+    def get_type(self) -> str:
         return "AWS::Lambda::Function"
 
-    @staticmethod
-    def get_log_group_name() -> str:
+    def get_log_group_name(self) -> str:
         return get_env("AWS_LAMBDA_FUNCTION_NAME")
 
-    @staticmethod
-    def configure_context(context: MetricsContext) -> None:
+    def configure_context(self, context: MetricsContext) -> None:
         context.set_property("executionEnvironment", get_env("AWS_EXECUTION_ENV"))
         context.set_property("memorySize", get_env("AWS_LAMBDA_FUNCTION_MEMORY_SIZE"))
         context.set_property("functionVersion", get_env("AWS_LAMBDA_FUNCTION_VERSION"))
@@ -55,7 +50,6 @@ class LambdaEnvironment(Environment):
         if len(trace_id) > 0 and "Sampled=1" in trace_id:
             context.set_property("traceId", trace_id)
 
-    @staticmethod
-    def get_sink() -> Sink:
+    def get_sink(self) -> Sink:
         """Create the appropriate sink for this environment."""
         return sink
