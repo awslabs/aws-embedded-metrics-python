@@ -18,10 +18,26 @@ from aws_embedded_metrics.serializers import Serializer
 from aws_embedded_metrics.serializers.log_serializer import LogSerializer
 import logging
 import socket
-from urllib.parse import urlparse
+from urllib.parse import urlparse, ParseResult
 
 log = logging.getLogger(__name__)
 Config = get_config()
+
+DEFAULT_ENDPOINT = urlparse("udp://0.0.0.0:25888")
+
+
+def get_endpoint() -> ParseResult:
+    if not Config.agent_endpoint:
+        return DEFAULT_ENDPOINT
+    try:
+        parsed_url = urlparse(Config.agent_endpoint)
+        if parsed_url is None or parsed_url.hostname is None or parsed_url.port is None:
+            return DEFAULT_ENDPOINT
+        else:
+            return parsed_url
+    except Exception:
+        log.debug("Failed to parse agent endpoint: %s", Config.agent_endpoint)
+        return DEFAULT_ENDPOINT
 
 
 class AgentSink(Sink):
@@ -34,7 +50,7 @@ class AgentSink(Sink):
         self.log_group_name = log_group_name
         self.log_steam_name = log_steam_name
         self.serializer = serializer
-        self.endpoint = urlparse(Config.agent_endpoint)
+        self.endpoint = get_endpoint()
 
     def accept(self, context: MetricsContext) -> None:
         context.set_property("log_group_name", self.log_group_name)
