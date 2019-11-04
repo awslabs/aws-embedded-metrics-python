@@ -1,0 +1,19 @@
+{
+  "ec2-metadata": {
+    "devpayProductCodes": null,
+    "marketplaceProductCodes": null,
+    "accountId": "123456789012",
+    "imageId": "ami-abcdef",
+    "availabilityZone": "us-west-2a",
+    "ramdiskId": null,
+    "kernelId": null,
+    "privateIp": "192.168.0.1",
+    "version": "2017-09-30",
+    "pendingTime": "2019-10-15T21:26:00Z",
+    "architecture": "x86_64",
+    "billingProducts": null,
+    "instanceId": "i-0574414d7440b1c76",
+    "instanceType": "t2.micro",
+    "region": "us-west-2"
+  }
+}

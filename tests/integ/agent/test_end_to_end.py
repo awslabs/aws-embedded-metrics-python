@@ -1,5 +1,5 @@
 from aws_embedded_metrics.config import get_config
-from aws_embedded_metrics.metric_scope import metric_scope
+from aws_embedded_metrics import metric_scope
 import pytest
 import boto3
 import logging

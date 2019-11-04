@@ -51,8 +51,7 @@ class EC2Environment(Environment):
                 log.debug("Received response from EC2 metdata endpoint.")
                 self.metadata = response_json
                 return True
-            except Exception as e:
-                print(e)
+            except Exception:
                 log.info(
                     "Failed to connect to EC2 metadata endpoint %s", metadata_endpoint
                 )
