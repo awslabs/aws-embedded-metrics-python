@@ -22,6 +22,7 @@ def test_can_get_config_from_environment():
     log_group = fake.word()
     log_stream = fake.word()
     agent_endpoint = fake.word()
+    ec2_metadata_endpoint = fake.word()
 
     os.environ["AWS_EMF_ENABLE_DEBUG_LOGGING"] = str(debug_enabled)
     os.environ["AWS_EMF_SERVICE_NAME"] = service_name
@@ -29,6 +30,7 @@ def test_can_get_config_from_environment():
     os.environ["AWS_EMF_LOG_GROUP_NAME"] = log_group
     os.environ["AWS_EMF_LOG_STREAM_NAME"] = log_stream
     os.environ["AWS_EMF_AGENT_ENDPOINT"] = agent_endpoint
+    os.environ["AWS_EMF_EC2_METADATA_ENDPOINT"] = ec2_metadata_endpoint
 
     # act
     result = get_config()
@@ -40,6 +42,7 @@ def test_can_get_config_from_environment():
     assert result.log_group_name == log_group
     assert result.log_stream_name == log_stream
     assert result.agent_endpoint == agent_endpoint
+    assert result.ec2_metadata_endpoint == ec2_metadata_endpoint
 
 
 def test_can_override_config():
@@ -50,6 +53,7 @@ def test_can_override_config():
     os.environ["AWS_EMF_LOG_GROUP_NAME"] = fake.word()
     os.environ["AWS_EMF_LOG_STREAM_NAME"] = fake.word()
     os.environ["AWS_EMF_AGENT_ENDPOINT"] = fake.word()
+    os.environ["AWS_EMF_EC2_METADATA_ENDPOINT"] = fake.word()
 
     config = get_config()
 
@@ -59,6 +63,7 @@ def test_can_override_config():
     log_group = fake.word()
     log_stream = fake.word()
     agent_endpoint = fake.word()
+    ec2_metadata_endpoint = fake.word()
 
     # act
     config.debug_logging_enabled = debug_enabled
@@ -67,6 +72,7 @@ def test_can_override_config():
     config.log_group_name = log_group
     config.log_stream_name = log_stream
     config.agent_endpoint = agent_endpoint
+    config.ec2_metadata_endpoint = ec2_metadata_endpoint
 
     # assert
     assert config.debug_logging_enabled == debug_enabled
@@ -75,3 +81,4 @@ def test_can_override_config():
     assert config.log_group_name == log_group
     assert config.log_stream_name == log_stream
     assert config.agent_endpoint == agent_endpoint
+    assert config.ec2_metadata_endpoint == ec2_metadata_endpoint

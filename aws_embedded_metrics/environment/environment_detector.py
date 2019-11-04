@@ -29,6 +29,7 @@ class EnvironmentCache:
 
 async def resolve_environment() -> Environment:
     if EnvironmentCache.environment is not None:
+        log.debug("Environment resolved from cache.")
         return EnvironmentCache.environment
 
     for env_under_test in environments:
