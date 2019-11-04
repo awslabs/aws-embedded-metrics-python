@@ -29,7 +29,9 @@ DEFAULT_EC2_METADATA_ENDPOINT = (
 )
 
 
-async def fetch(session: aiohttp.ClientSession, url: str) -> Dict[str, Any]:
+async def fetch(  # type: ignore
+    session: aiohttp.ClientSession, url: str
+) -> Dict[str, Any]:
     async with session.get(url, timeout=2) as response:
         return cast(Dict[str, Any], await response.json())
 
@@ -45,11 +47,12 @@ class EC2Environment(Environment):
             )
             log.info("Fetching EC2 metadata from: %s", metadata_endpoint)
             try:
-                respone_json = await fetch(session, metadata_endpoint)
+                response_json = await fetch(session, metadata_endpoint)
                 log.debug("Received response from EC2 metdata endpoint.")
-                self.metadata = respone_json
+                self.metadata = response_json
                 return True
-            except Exception:
+            except Exception as e:
+                print(e)
                 log.info(
                     "Failed to connect to EC2 metadata endpoint %s", metadata_endpoint
                 )
