@@ -18,7 +18,7 @@ def mock_logger(mocker):
 
 
 @pytest.mark.asyncio
-async def test_async_scope_executes_handler_function():
+async def test_async_scope_executes_handler_function(mock_logger):
     # arrange
     test_input = {}
 
@@ -34,7 +34,7 @@ async def test_async_scope_executes_handler_function():
     assert test_input["wasExecuted"] is True
 
 
-def test_sync_scope_executes_handler_function():
+def test_sync_scope_executes_handler_function(mock_logger):
     # arrange
     test_input = {}
 
@@ -50,7 +50,7 @@ def test_sync_scope_executes_handler_function():
 
 
 @pytest.mark.asyncio
-async def test_async_scope_forwards_handler_return_value():
+async def test_async_scope_forwards_handler_return_value(mock_logger):
     # arrange
     expected_result = True
 
@@ -66,7 +66,7 @@ async def test_async_scope_forwards_handler_return_value():
     assert expected_result == actual_result
 
 
-def test_sync_scope_forwards_handler_return_value():
+def test_sync_scope_forwards_handler_return_value(mock_logger):
     # arrange
     expected_result = True
 
@@ -82,7 +82,7 @@ def test_sync_scope_forwards_handler_return_value():
 
 
 @pytest.mark.asyncio
-async def test_async_scope_passes_configured_metrics_logger():
+async def test_async_scope_passes_configured_metrics_logger(mock_logger):
     # arrange
     @metric_scope
     async def my_handler(metrics):
@@ -96,7 +96,7 @@ async def test_async_scope_passes_configured_metrics_logger():
     assert isinstance(actual_result, MetricsLogger)
 
 
-def test_sync_scope_passes_configured_metrics_logger():
+def test_sync_scope_passes_configured_metrics_logger(mock_logger):
     # arrange
     @metric_scope
     def my_handler(metrics):
