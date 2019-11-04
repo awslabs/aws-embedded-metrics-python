@@ -1,19 +1,20 @@
 import os
 from aws_embedded_metrics.environment.lambda_environment import LambdaEnvironment
 from aws_embedded_metrics.sinks.lambda_sink import LambdaSink
-
+import pytest
 from faker import Faker
 
 fake = Faker()
 
 
-def test_probe_returns_true_if_fcn_name_in_env():
+@pytest.mark.asyncio
+async def test_probe_returns_true_if_fcn_name_in_env():
     # arrange
     os.environ["AWS_LAMBDA_FUNCTION_NAME"] = fake.word()
     env = LambdaEnvironment()
 
     # act
-    result = env.probe()
+    result = await env.probe()
 
     # assert
     assert result is True
