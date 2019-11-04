@@ -33,7 +33,10 @@ async def fetch(  # type: ignore
     session: aiohttp.ClientSession, url: str
 ) -> Dict[str, Any]:
     async with session.get(url, timeout=2) as response:
-        return cast(Dict[str, Any], await response.json())
+        # content_type=None prevents validation of the HTTP Content-Type header
+        # The EC2 metadata endpoint uses text/plain instead of application/json
+        # https://github.com/aio-libs/aiohttp/blob/7f777333a4ec0043ddf2e8d67146a626089773d9/aiohttp/web_request.py#L582-L585
+        return cast(Dict[str, Any], await response.json(content_type=None))
 
 
 class EC2Environment(Environment):
