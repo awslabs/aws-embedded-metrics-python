@@ -1,8 +1,13 @@
 from aws_embedded_metrics import metric_scope
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
+
 
 @metric_scope
-def my_handler(event, context, metrics):
+def my_handler(metrics):
     metrics.put_dimensions({"Foo": "Bar"})
     metrics.put_metric("ProcessingLatency", 100, "Milliseconds")
     metrics.set_property("AccountId", "123456789012")
@@ -13,3 +18,8 @@ def my_handler(event, context, metrics):
     )
 
     return {"message": "Hello!"}
+
+
+my_handler()
+
+log.info("Example completed.")
