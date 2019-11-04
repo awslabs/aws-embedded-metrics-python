@@ -114,5 +114,7 @@ def configure_response(aresponses, json):
         "169.254.169.254",
         "/latest/dynamic/instance-identity/document",
         "get",
-        aresponses.Response(text=json, content_type="application/json"),
+        # the ec2-metdata endpoint does not actually set the correct
+        # content-type header, it will instead use text/plain
+        aresponses.Response(text=json, content_type="text/plain"),
     )
