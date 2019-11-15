@@ -33,3 +33,6 @@ docker run  -p 25888:25888/udp \
     -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
     --name "CWAgent" \
     agent:latest &> $tempfile &
+
+rm -rf ./.aws/config
+rm -rf ./.aws/credentials

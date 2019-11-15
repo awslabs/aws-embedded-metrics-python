@@ -26,3 +26,11 @@ class Sink(abc.ABC):
     @abc.abstractmethod
     def accept(self, context: MetricsContext) -> None:
         """Flushes the metrics context to the sink."""
+
+
+class SocketClient(abc.ABC):
+    """Interface for pushing data to a socket"""
+
+    @abc.abstractmethod
+    def send_message(self, message: bytes) -> None:
+        """Send binary payload to socket"""

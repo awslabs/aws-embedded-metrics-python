@@ -49,4 +49,5 @@ async def resolve_environment() -> Environment:
             return env_under_test
 
     log.info("No environment was detected. Using default.")
-    return DefaultEnvironment()
+    EnvironmentCache.environment = DefaultEnvironment()
+    return EnvironmentCache.environment

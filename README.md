@@ -1,22 +1,29 @@
 # aws-embedded-metrics
 
 ![](https://codebuild.us-west-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoidjNkYXpXTzMxdUY2dEdab2RaZTgvTXhUSGh2bjNmUlhmUEorejM0UytyOWNqeFptcUpBT2wzNkJ1MkExQXI3UFdNaGQzNlVmSzBPWkRhdmhkb2lqL05NPSIsIml2UGFyYW1ldGVyU3BlYyI6IkhKZS9rd2UwYzVud1VucVgiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)
+[![](https://img.shields.io/pypi/v/aws-embedded-metrics)](https://pypi.org/project/aws-embedded-metrics/0.1.0b1573849895867/)
 
-A new package from AWS CloudWatch that allows you to generate CloudWatch Metrics from log data without requiring a control plane operation (e.g. PutMetricFilter). You are now able to embed metrics inside structured log events that direct CloudWatch Logs to extract and publish metrics to CloudWatch Metrics.
+A new package from Amazon CloudWatch that allows you to generate CloudWatch Metrics from log data without requiring a control plane operation (e.g. PutMetricFilter). You are now able to embed metrics inside structured log events that direct CloudWatch Logs to extract and publish metrics to CloudWatch Metrics.
 
 ## Use Cases
 
 - **Asynchronous emission of metrics from Lambda functions**
-  There are two natively supported options for emitting metrics from Lambda today: executing synchronous calls to CloudWatch via PutMetricData or extracting metrics from your function logs through CloudWatch Logs Metric Filters. The first couples the TPS of your function to your PutMetricData TPS and also blocks function execution while waiting on a response from CWM. The second requires you to make a control plane call, forces you to keep code and configuration synchronized and also only supports a maximum of 100 filters per LogGroup. These are no longer problems if you use aws-embedded-metrics since your metric definitions are included in the log data.
+  There are two natively supported options for emitting metrics from Lambda today: executing synchronous calls to CloudWatch via PutMetricData or extracting metrics from your function logs through CloudWatch Logs Metric Filters. The first couples the TPS of your function to your PutMetricData TPS and also blocks function execution while waiting on a response from CloudWatch Metrics. The second requires you to make a control plane call, forces you to keep code and configuration synchronized and also only supports a maximum of 100 filters per LogGroup. These are no longer problems if you use CloudWatch embedded metrics since your metric definitions are included in the log data.
 - **Linking metrics to high cardinality context**
-  Using the Embedded Metric Format (EMF), you will be able to extract metrics and configure alarms on those metrics, but also be able to jump back to the logs—using CWL Insights—that emitted those metrics to view high cardinality context.
+  Using the Embedded Metric Format, you will be able to extract metrics and configure alarms on those metrics, but also be able to jump back to the logs—using [CloudWatch Logs Insights](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html)—that emitted those metrics to view high cardinality context.
+
+## Installation
+
+```
+pip3 install aws-embedded-metrics
+```
 
 ## Usage
 
 To get a metric logger, you can decorate your function with a `metric_scope`:
 
 ```py
-from aws_embedded_metrics.metric_scope import metric_scope
+from aws_embedded_metrics import metric_scope
 
 @metric_scope
 def my_handler(metrics):
@@ -35,9 +42,26 @@ def my_handler(metrics):
 
 The `MetricsLogger` is the interface you will use to publish embedded metrics.
 
+- **put_metric**(key: str, value: float, unit: str = "None") -> MetricsLogger
+
+Adds a new metric to the current logger context. Multiple metrics using the same key will be appended to an array of values. The Embedded Metric Format supports a maximum of 100 values per key. If more metric values are added than are supported by the format, the logger will be flushed to allow for new metric values to be captured.
+
+Requirements:
+
+- Name Length 1-255 characters
+- Name must be ASCII characters only
+- Values must be in the range of 8.515920e-109 to 1.174271e+108. In addition, special values (for example, NaN, +Infinity, -Infinity) are not supported.
+- Units must meet CW Metrics unit requirements, if not it will default to None.
+
+Examples:
+
+```py
+put_metric("Latency", 200, "Milliseconds");
+```
+
 - **set_property**(key: str, value: Any) -> MetricsLogger
 
-Adds or updates the value for a given property on this context. This value is not submitted to CWM but is searchable by CWL Insights. This is useful for contextual and potentially high-cardinality data that is not appropriate for CWM dimensions.
+Adds or updates the value for a given property on this context. This value is not submitted to CloudWatch Metrics but is searchable by CloudWatch Logs Insights. This is useful for contextual and potentially high-cardinality data that is not appropriate for CloudWatch Metrics dimensions.
 
 Requirements:
 
@@ -59,7 +83,7 @@ set_property("Device", {
 
 Adds a new set of dimensions that will be associated to all metric values.
 
-**WARNING**: Every distinct value will result in a new CloudWatch Metric name.
+**WARNING**: Every distinct value will result in a new CloudWatch Metric.
 If the cardinality of a particular value is expected to be high, you should consider
 using `setProperty` instead.
 
@@ -79,7 +103,7 @@ put_dimensions({ "Operation": "Aggregator", "DeviceType": "Actuator" });
 
 Explicitly override all dimensions. This will remove the default dimensions.
 
-**WARNING**: Every distinct value will result in a new CloudWatch Metric name.
+**WARNING**: Every distinct value will result in a new CloudWatch Metric.
 If the cardinality of a particular value is expected to be high, you should consider
 using `setProperty` instead.
 
@@ -97,21 +121,19 @@ set_dimensions(
 );
 ```
 
-- **put_metric**(key: str, value: float, unit: str = "None") -> MetricsLogger
+- **set_namespace**(value: str) -> MetricsLogger
 
-Adds a new metric to the current logger context. Multiple metrics using the same key will be appended to an array of values. EMF supports a maximum of 100 values per key. If more metric values are added than are supported by the format, the logger will be flushed to allow for new metric values to be captured.
+Sets the CloudWatch [namespace](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#Namespace) that extracted metrics should be published to. If not set, a default value of aws-embedded-metrics will be used.
 
 Requirements:
 
 - Name Length 1-255 characters
 - Name must be ASCII characters only
-- Values must be in the range of 8.515920e-109 to 1.174271e+108. In addition, special values (for example, NaN, +Infinity, -Infinity) are not supported.
-- Units must meet CW Metrics unit requirements, if not it will default to None.
 
 Examples:
 
 ```py
-put_metric("Latency", 200, "Milliseconds");
+set_namespace("MyApplication");
 ```
 
 - **flush**()
@@ -160,7 +182,7 @@ Config.service_type = "NodeJSWebApp";
 AWS_EMF_SERVICE_TYPE = NodeJSWebApp;
 ```
 
-**LogGroupName**: For agent-based platforms, you may optionally configure the destination log group metrics should be delivered to. This value will be passed from the library to the agent in the EMF payload. If a LogGroup is not provided, the default value will be derived from the service name: <service-name>-metrics
+**LogGroupName**: For agent-based platforms, you may optionally configure the destination log group that metrics should be delivered to. This value will be passed from the library to the agent in the Embedded Metric payload. If a LogGroup is not provided, the default value will be derived from the service name: <service-name>-metrics
 
 Requirements:
 
@@ -179,7 +201,7 @@ Config.log_group_name = "LogGroupName";
 AWS_EMF_LOG_GROUP_NAME = LogGroupName;
 ```
 
-**LogStreamName**: For agent-based platforms, you may optionally configure the destination log stream metrics should be delivered to. This value will be passed from the library to the agent in the EMF payload. If a LogGroup is not provided, the default value will be derived by the agent (this will likely be the hostname).
+**LogStreamName**: For agent-based platforms, you may optionally configure the destination log stream that metrics should be delivered to. This value will be passed from the library to the agent in the Embedded Metric payload. If a LogGroup is not provided, the default value will be derived by the agent (this will likely be the hostname).
 
 Requirements:
 
@@ -215,3 +237,16 @@ pip install tox
 ```
 tox
 ```
+
+3. Integration tests. These tests require Docker to run the CloudWatch Agent and valid AWS credentials. Tests can be run by:
+
+```sh
+export AWS_ACCESS_KEY_ID=
+export AWS_SECRET_ACCESS_KEY=
+export AWS_REGION=us-west-2
+./bin/run-integ-tests.sh
+```
+
+## License
+
+This project is licensed under the Apache-2.0 License.

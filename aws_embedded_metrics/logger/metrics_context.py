@@ -1,3 +1,17 @@
+# Copyright 2019 Amazon.com, Inc. or its affiliates.
+# Licensed under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 from aws_embedded_metrics import constants, utils
 from aws_embedded_metrics.logger.metric import Metric
 from typing import List, Dict, Any
@@ -17,11 +31,12 @@ class MetricsContext(object):
     ):
 
         self.namespace: str = namespace or constants.DEFAULT_NAMESPACE
-        self.properties: Dict[str, Any] = properties or {"Timestamp": utils.now()}
+        self.properties: Dict[str, Any] = properties or {}
         self.dimensions: List[Dict[str, str]] = dimensions or []
         self.default_dimensions: Dict[str, str] = default_dimensions or {}
         self.metrics: Dict[str, Metric] = {}
         self.should_use_default_dimensions = True
+        self.meta: Dict[str, Any] = {"Timestamp": utils.now()}
 
     def put_metric(self, key: str, value: float, unit: str = None) -> None:
         """

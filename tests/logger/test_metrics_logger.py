@@ -164,6 +164,22 @@ async def test_set_dimensions_overrides_all_dimensions(mocker):
     assert dimensions[expected_key] == expected_value
 
 
+@pytest.mark.asyncio
+async def test_can_set_namespace(mocker):
+    # arrange
+    expected_value = fake.word()
+
+    logger, sink, env = get_logger_and_sink(mocker)
+
+    # act
+    logger.set_namespace(expected_value)
+    await logger.flush()
+
+    # assert
+    context = get_flushed_context(sink)
+    assert context.namespace == expected_value
+
+
 # Test helper methods
 
 

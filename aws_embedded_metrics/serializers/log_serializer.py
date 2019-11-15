@@ -15,7 +15,7 @@ from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.serializers import Serializer
 from aws_embedded_metrics.constants import MAX_DIMENSIONS
 import json
-from typing import Dict, List
+from typing import Any, Dict, List
 
 
 class LogSerializer(Serializer):
@@ -38,11 +38,10 @@ class LogSerializer(Serializer):
         }
         cloud_watch_metrics = [metric_definitions]
 
-        body = {
+        body: Dict[str, Any] = {
             **dimensions_properties,
             **context.properties,
-            "CloudWatchMetrics": cloud_watch_metrics,
-            "Version": "0",
+            "_aws": {**context.meta, "CloudWatchMetrics": cloud_watch_metrics},
         }
 
         for metric_name, metric in context.metrics.items():
