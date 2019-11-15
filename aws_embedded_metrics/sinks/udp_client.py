@@ -11,14 +11,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aws_embedded_metrics.config.configuration import Configuration
-from aws_embedded_metrics.config.environment_configuration_provider import (
-    EnvironmentConfigurationProvider,
-)
+from aws_embedded_metrics.sinks import SocketClient
+import logging
+import socket
+from urllib.parse import ParseResult
 
-config = EnvironmentConfigurationProvider().get_configuration()
+log = logging.getLogger(__name__)
 
 
-def get_config() -> Configuration:
-    """Gets the current configuration"""
-    return config
+class UdpClient(SocketClient):
+    def __init__(self, endpoint: ParseResult):
+        self.endpoint = endpoint
+
+    def send_message(self, message: bytes) -> None:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.sendto(message, (self.endpoint.hostname, self.endpoint.port))
+        sock.close()
+        log.info("Submitted metrics to agent over UDP.")

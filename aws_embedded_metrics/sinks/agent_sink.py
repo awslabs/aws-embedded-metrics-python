@@ -13,17 +13,18 @@
 
 from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
-from aws_embedded_metrics.sinks import Sink
+from aws_embedded_metrics.sinks import Sink, SocketClient
+from aws_embedded_metrics.sinks.udp_client import UdpClient
+from aws_embedded_metrics.sinks.tcp_client import TcpClient
 from aws_embedded_metrics.serializers import Serializer
 from aws_embedded_metrics.serializers.log_serializer import LogSerializer
 import logging
-import socket
 from urllib.parse import urlparse, ParseResult
 
 log = logging.getLogger(__name__)
 Config = get_config()
 
-DEFAULT_ENDPOINT = urlparse("udp://0.0.0.0:25888")
+DEFAULT_ENDPOINT = urlparse("tcp://0.0.0.0:25888")
 
 
 def get_endpoint() -> ParseResult:
@@ -40,6 +41,13 @@ def get_endpoint() -> ParseResult:
         return DEFAULT_ENDPOINT
 
 
+def get_socket_client(endpoint: ParseResult) -> SocketClient:
+    if endpoint.scheme == "udp":
+        return UdpClient(endpoint)
+    else:
+        return TcpClient(endpoint).connect()
+
+
 class AgentSink(Sink):
     def __init__(
         self,
@@ -51,22 +59,21 @@ class AgentSink(Sink):
         self.log_steam_name = log_steam_name
         self.serializer = serializer
         self.endpoint = get_endpoint()
+        self.client = get_socket_client(self.endpoint)
 
     def accept(self, context: MetricsContext) -> None:
-        context.set_property("log_group_name", self.log_group_name)
+        context.meta["LogGroupName"] = self.log_group_name
         if self.log_steam_name is not None:
-            context.set_property("log_stream_name", self.log_steam_name)
+            context.meta["LogStreamName"] = self.log_steam_name
 
-        serialized_content = self.serializer.serialize(context)
+        serialized_content = self.serializer.serialize(context) + '\n'
         log.info(
-            "Parsed agent endpoint %s:%s", self.endpoint.hostname, self.endpoint.port
+            "Parsed agent endpoint (%s) %s:%s",
+            self.endpoint.scheme,
+            self.endpoint.hostname,
+            self.endpoint.port,
         )
-        udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        udp_socket.sendto(
-            serialized_content.encode(), (self.endpoint.hostname, self.endpoint.port)
-        )
-        udp_socket.close()
-        log.info("Submitted metrics to agent over UDP.")
+        self.client.send_message(serialized_content.encode())
 
     @staticmethod
     def name() -> str:

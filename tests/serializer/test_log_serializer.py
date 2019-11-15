@@ -16,7 +16,7 @@ def test_serialize_dimensions():
     dimensions[expected_key] = expected_value
 
     expected = {**get_empty_payload(), **dimensions}
-    expected["CloudWatchMetrics"][0]["Dimensions"].append([expected_key])
+    expected["_aws"]["CloudWatchMetrics"][0]["Dimensions"].append([expected_key])
 
     context = get_context()
     context.put_dimensions(dimensions)
@@ -45,7 +45,9 @@ def test_cannot_serialize_more_than_10_dimensions():
     expected_dimensions_pointers = dimension_pointers[0:allowed_dimensions]
 
     expected = {**get_empty_payload(), **dimensions}
-    expected["CloudWatchMetrics"][0]["Dimensions"].append(expected_dimensions_pointers)
+    expected["_aws"]["CloudWatchMetrics"][0]["Dimensions"].append(
+        expected_dimensions_pointers
+    )
 
     context = get_context()
     context.put_dimensions(dimensions)
@@ -84,7 +86,9 @@ def test_serialize_metrics():
 
     expected = {**get_empty_payload()}
     expected[expected_key] = expected_value
-    expected["CloudWatchMetrics"][0]["Metrics"].append(expected_metric_definition)
+    expected["_aws"]["CloudWatchMetrics"][0]["Metrics"].append(
+        expected_metric_definition
+    )
 
     context = get_context()
     context.put_metric(expected_key, expected_value)
@@ -101,17 +105,18 @@ def test_serialize_metrics():
 
 def get_context():
     context = MetricsContext.empty()
-    context.set_property("Timestamp", 0)
+    context.meta["Timestamp"] = 0
     return context
 
 
 def get_empty_payload():
     return {
-        "CloudWatchMetrics": [
-            {"Dimensions": [], "Metrics": [], "Namespace": "aws-embedded-metrics"}
-        ],
-        "Version": "0",
-        "Timestamp": 0,
+        "_aws": {
+            "Timestamp": 0,
+            "CloudWatchMetrics": [
+                {"Dimensions": [], "Metrics": [], "Namespace": "aws-embedded-metrics"}
+            ],
+        }
     }
 
 

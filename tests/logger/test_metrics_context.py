@@ -22,7 +22,8 @@ def test_can_create_context_with_no_arguments(mock_time):
 
     # assert
     assert context.namespace == "aws-embedded-metrics"
-    assert context.properties == {"Timestamp": mock_time}
+    assert context.meta == {"Timestamp": mock_time}
+    assert context.properties == {}
     assert context.dimensions == []
     assert context.default_dimensions == {}
 
@@ -38,7 +39,7 @@ def test_can_set_property(mock_time):
     context.properties[property_key] = property_value
 
     # assert
-    assert context.properties == {"Timestamp": mock_time, property_key: property_value}
+    assert context.properties == {property_key: property_value}
 
 
 def test_put_dimension_adds_to_dimensions(mock_time):

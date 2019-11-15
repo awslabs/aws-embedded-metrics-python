@@ -66,6 +66,10 @@ class MetricsLogger:
         self.context.set_dimensions(list(dimensions))
         return self
 
+    def set_namespace(self, namespace: str) -> "MetricsLogger":
+        self.context.namespace = namespace
+        return self
+
     def put_metric(self, key: str, value: float, unit: str = "None") -> "MetricsLogger":
         self.context.put_metric(key, value, unit)
         return self

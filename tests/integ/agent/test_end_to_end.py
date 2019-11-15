@@ -22,15 +22,49 @@ start_time = datetime.utcnow()
 
 @pytest.mark.timeout(120)
 @pytest.mark.asyncio
-async def test_end_to_end():
+async def test_end_to_end_tcp_multiple_flushes():
     # arrange
     # ensure we don't incorrectly detect as Lambda environment
     os.environ["AWS_LAMBDA_FUNCTION_NAME"] = ""
+    Config.agent_endpoint = "tcp://0.0.0.0:25888"
+
+    metric_name = "TCP-MultiFlush"
+    expected_sample_count = 3
 
     @metric_scope
     async def do_work(metrics):
         metrics.put_dimensions({"Operation": "Agent"})
-        metrics.put_metric("ExampleMetric", 100, "Milliseconds")
+        metrics.put_metric(metric_name, 100, "Milliseconds")
+        metrics.set_property("RequestId", "422b1569-16f6-4a03-b8f0-fe3fd9b100f8")
+
+    # act
+    await do_work()
+    await do_work()
+    await asyncio.sleep(5)
+    await do_work()
+
+    # assert
+    attempts = 0
+    while metric_exists(metric_name, expected_sample_count) is False:
+        attempts += 1
+        print(f"No metrics yet. Sleeping before trying again. Attempt # {attempts}")
+        await asyncio.sleep(expected_sample_count)
+
+
+@pytest.mark.timeout(120)
+@pytest.mark.asyncio
+async def test_end_to_end_udp():
+    # arrange
+    # ensure we don't incorrectly detect as Lambda environment
+    os.environ["AWS_LAMBDA_FUNCTION_NAME"] = ""
+    Config.agent_endpoint = "udp://0.0.0.0:25888"
+
+    metric_name = "UDP-SingleFlush"
+
+    @metric_scope
+    async def do_work(metrics):
+        metrics.put_dimensions({"Operation": "Agent"})
+        metrics.put_metric(metric_name, 100, "Milliseconds")
         metrics.set_property("RequestId", "422b1569-16f6-4a03-b8f0-fe3fd9b100f8")
 
     # act
@@ -38,16 +72,16 @@ async def test_end_to_end():
 
     # assert
     attempts = 0
-    while metric_exists() is False:
+    while metric_exists(metric_name) is False:
         attempts += 1
         print(f"No metrics yet. Sleeping before trying again. Attempt # {attempts}")
         await asyncio.sleep(2)
 
 
-def metric_exists():
+def metric_exists(metric_name, expected_samples=1):
     response = client.get_metric_statistics(
         Namespace="aws-embedded-metrics",
-        MetricName="ExampleMetric",
+        MetricName=metric_name,
         Dimensions=[
             {"Name": "ServiceName", "Value": Config.service_name},
             {"Name": "ServiceType", "Value": Config.service_type},
@@ -61,4 +95,11 @@ def metric_exists():
         Unit="Milliseconds",
     )
 
-    return len(response["Datapoints"]) > 0
+    if len(response["Datapoints"]) > 0:
+        sample_count = response["Datapoints"][0]["SampleCount"]
+        if sample_count == expected_samples:
+            return True
+        else:
+            print(response["Datapoints"])
+
+    return False
