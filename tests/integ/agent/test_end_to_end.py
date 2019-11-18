@@ -101,7 +101,12 @@ def metric_exists(metric_name, expected_samples=1):
 
     if total_samples == expected_samples:
         return True
+    elif total_samples > expected_samples:
+        raise Exception(
+            f"Too many datapoints returned. Expected #{expected_samples}, received #{total_samples}"
+        )
     else:
         print(response["Datapoints"])
+        print(f"Expected #{expected_samples}, received #{total_samples}.")
 
     return False
