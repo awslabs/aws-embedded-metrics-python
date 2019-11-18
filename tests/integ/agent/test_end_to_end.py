@@ -6,6 +6,12 @@ import logging
 import os
 import asyncio
 from datetime import datetime, timedelta
+from random import randint
+
+# use a random number in metric names to avoid collisions
+test_id = randint(0, 100)
+
+print(f"Using test-id {test_id}")
 
 # enable verbose logging in case something goes wrong
 # pytest won't actually output any of the logs unless it fails
@@ -28,7 +34,7 @@ async def test_end_to_end_tcp_multiple_flushes():
     os.environ["AWS_LAMBDA_FUNCTION_NAME"] = ""
     Config.agent_endpoint = "tcp://0.0.0.0:25888"
 
-    metric_name = "TCP-MultiFlush"
+    metric_name = f"TCP-MultiFlush-{test_id}"
     expected_sample_count = 3
 
     @metric_scope
@@ -59,7 +65,7 @@ async def test_end_to_end_udp():
     os.environ["AWS_LAMBDA_FUNCTION_NAME"] = ""
     Config.agent_endpoint = "udp://0.0.0.0:25888"
 
-    metric_name = "UDP-SingleFlush"
+    metric_name = f"UDP-SingleFlush-{test_id}"
 
     @metric_scope
     async def do_work(metrics):
@@ -103,10 +109,10 @@ def metric_exists(metric_name, expected_samples=1):
         return True
     elif total_samples > expected_samples:
         raise Exception(
-            f"Too many datapoints returned. Expected #{expected_samples}, received #{total_samples}"
+            f"Too many datapoints returned. Expected {expected_samples}, received {total_samples}"
         )
     else:
         print(response["Datapoints"])
-        print(f"Expected #{expected_samples}, received #{total_samples}.")
+        print(f"Expected #{expected_samples}, received {total_samples}.")
 
     return False
