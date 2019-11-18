@@ -95,11 +95,13 @@ def metric_exists(metric_name, expected_samples=1):
         Unit="Milliseconds",
     )
 
-    if len(response["Datapoints"]) > 0:
-        sample_count = response["Datapoints"][0]["SampleCount"]
-        if sample_count == expected_samples:
-            return True
-        else:
-            print(response["Datapoints"])
+    total_samples = 0
+    for datapoint in response["Datapoints"]:
+        total_samples += datapoint["SampleCount"]
+
+    if total_samples == expected_samples:
+        return True
+    else:
+        print(response["Datapoints"])
 
     return False
