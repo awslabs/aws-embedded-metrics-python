@@ -1,17 +1,16 @@
 # aws-embedded-metrics
 
 ![](https://codebuild.us-west-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoidjNkYXpXTzMxdUY2dEdab2RaZTgvTXhUSGh2bjNmUlhmUEorejM0UytyOWNqeFptcUpBT2wzNkJ1MkExQXI3UFdNaGQzNlVmSzBPWkRhdmhkb2lqL05NPSIsIml2UGFyYW1ldGVyU3BlYyI6IkhKZS9rd2UwYzVud1VucVgiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)
-[![](https://img.shields.io/pypi/v/aws-embedded-metrics)](https://pypi.org/project/aws-embedded-metrics/0.1.0b1573849895867/)
+[![](https://img.shields.io/pypi/v/aws-embedded-metrics)](https://pypi.org/project/aws-embedded-metrics/)
 
 A new package from Amazon CloudWatch that allows you to generate CloudWatch Metrics from structured log events. The embedded metrics will be extracted so you can visualize and alarm on them for real-time incident detection. This allows you to monitor aggregated values while preserving the detailed event context that generated them.
 
-* [Use Cases](#use-cases)
-* [Installation](#installation)
-* [Usage](#usage)
-* [API](#api)
-* [Examples](#examples)
-* [Development](#development)
-
+- [Use Cases](#use-cases)
+- [Installation](#installation)
+- [Usage](#usage)
+- [API](#api)
+- [Examples](#examples)
+- [Development](#development)
 
 ## Use Cases
 
