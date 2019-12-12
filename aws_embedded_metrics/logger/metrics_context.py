@@ -125,8 +125,17 @@ class MetricsContext(object):
         new_properties: Dict = {}
         new_properties.update(self.properties)
 
+        # dimensions added with put_dimension will not be copied.
+        # the reason for this is so that you can flush the same scope multiple
+        # times without stacking new dimensions. Example:
+        #
+        # @metric_scope
+        # def my_func(metrics):
+        #  metrics.put_dimensions(...)
+        #
+        # my_func()
+        # my_func()
         new_dimensions: List[Dict] = []
-        new_dimensions = new_dimensions + self.dimensions
 
         new_default_dimensions: Dict = {}
         new_default_dimensions.update(self.default_dimensions)

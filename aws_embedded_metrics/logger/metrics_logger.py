@@ -41,7 +41,7 @@ class MetricsLogger:
 
         # accept and reset the context
         sink.accept(self.context)
-        self.context = MetricsContext.empty()
+        self.context = self.context.create_copy_with_context()
 
     def __configureContextForEnvironment(self, env: Environment) -> None:
         default_dimensions = {

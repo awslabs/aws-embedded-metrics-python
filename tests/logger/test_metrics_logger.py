@@ -180,6 +180,39 @@ async def test_can_set_namespace(mocker):
     assert context.namespace == expected_value
 
 
+@pytest.mark.asyncio
+async def test_context_is_preserved_across_flushes(mocker):
+    # arrange
+    expected_namespace = "Namespace"
+    metric_key = "Metric"
+    expected_dimension_key = "Dim"
+    expected_property_key = "Prop"
+    expected_value = "Value"
+
+    logger, sink, env = get_logger_and_sink(mocker)
+
+    logger.set_namespace(expected_namespace)
+    logger.set_property(expected_property_key, expected_value)
+    logger.set_dimensions({expected_dimension_key: expected_value})
+
+    # act
+    logger.put_metric(metric_key, 0)
+    await logger.flush()
+
+    context = sink.accept.call_args[0][0]
+    assert context.namespace == expected_namespace
+    assert context.properties[expected_property_key] == expected_value
+    assert context.metrics[metric_key].values == [0]
+
+    logger.put_metric(metric_key, 1)
+    await logger.flush()
+
+    context = sink.accept.call_args[0][0]
+    assert context.namespace == expected_namespace
+    assert context.properties[expected_property_key] == expected_value
+    assert context.metrics[metric_key].values == [1]
+
+
 # Test helper methods
 
 
