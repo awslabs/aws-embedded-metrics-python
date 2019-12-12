@@ -197,7 +197,7 @@ def test_create_copy_with_context_copies_properties():
     assert context.properties is not new_context.properties
 
 
-def test_create_copy_with_context_copies_dimensions():
+def test_create_copy_with_context_does_not_copy_dimensions():
     # arrange
     context = MetricsContext()
     dimension_key = fake.word()
@@ -208,8 +208,7 @@ def test_create_copy_with_context_copies_dimensions():
     new_context = context.create_copy_with_context()
 
     # assert
-    assert context.dimensions == new_context.dimensions
-    assert context.dimensions is not new_context.dimensions
+    assert len(new_context.dimensions) == 0
 
 
 def test_create_copy_with_context_copies_default_dimensions():
@@ -225,6 +224,20 @@ def test_create_copy_with_context_copies_default_dimensions():
     assert context.default_dimensions is not new_context.default_dimensions
 
 
+def test_create_copy_with_context_does_not_copy_metrics():
+    # arrange
+    context = MetricsContext()
+    prop_key = fake.word()
+    prop_value = fake.word()
+    context.set_property(prop_key, prop_value)
+
+    # act
+    new_context = context.create_copy_with_context()
+
+    # assert
+    assert len(new_context.metrics) == 0
+
+
 def test_set_dimensions_overwrites_all_dimensions():
     # arrange
     context = MetricsContext()
@@ -238,3 +251,20 @@ def test_set_dimensions_overwrites_all_dimensions():
 
     # assert
     assert context.dimensions == expected_dimensions
+
+
+def test_create_copy_with_context_does_not_repeat_dimensions():
+    # arrange
+    context = MetricsContext()
+    expected_dimensions = {fake.word(): fake.word()}
+
+    custom = {fake.word(): fake.word()}
+    context.set_default_dimensions(expected_dimensions)
+    context.put_dimensions(custom)
+
+    new_context = context.create_copy_with_context()
+    new_context.set_default_dimensions(expected_dimensions)
+    new_context.put_dimensions(custom)
+
+    # assert
+    assert len(new_context.get_dimensions()) == 1
