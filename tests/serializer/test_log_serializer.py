@@ -28,11 +28,11 @@ def test_serialize_dimensions():
     assert_json_equality(result_json, expected)
 
 
-def test_cannot_serialize_more_than_10_dimensions():
+def test_cannot_serialize_more_than_9_dimensions():
     # arrange
     dimensions = {}
     dimension_pointers = []
-    allowed_dimensions = 10
+    allowed_dimensions = 9
     dimensions_to_add = 15
 
     for i in range(0, dimensions_to_add):
