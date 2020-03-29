@@ -9,6 +9,8 @@
 #   ./run-integ-tests.sh
 
 rootdir=$(git rev-parse --show-toplevel)
+rootdir=${rootdir:-$(pwd)} # in case we are not in a git repository (Code Pipelines)
+
 tempfile="$rootdir/tests/integ/agent/.temp"
 status_code=0
 

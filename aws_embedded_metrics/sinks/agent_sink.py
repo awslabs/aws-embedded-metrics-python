@@ -73,7 +73,7 @@ class AgentSink(Sink):
             self.endpoint.hostname,
             self.endpoint.port,
         )
-        self.client.send_message(serialized_content.encode())
+        self.client.send_message(serialized_content.encode('utf-8'))
 
     @staticmethod
     def name() -> str:

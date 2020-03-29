@@ -14,7 +14,6 @@
 from aws_embedded_metrics.environment import Environment
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.config import get_config
-
 from typing import Any, Awaitable, Callable, Dict
 
 Config = get_config()
