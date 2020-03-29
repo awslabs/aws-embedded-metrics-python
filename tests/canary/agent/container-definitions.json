@@ -1,0 +1,51 @@
+[
+  {
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "/ecs/emf-python-canary",
+        "awslogs-region": "us-west-2",
+        "awslogs-stream-prefix": "ecs",
+        "awslogs-create-group": "true"
+      }
+    },
+    "dependsOn": [
+      {
+        "containerName": "cloudwatch-agent-python",
+        "condition": "START"
+      }
+    ],
+    "environment": [
+      {
+        "name": "AWS_EMF_AGENT_ENDPOINT",
+        "value": "tcp://cloudwatch-agent-python:25888"
+      },
+      {
+        "name": "AWS_EMF_ENABLE_DEBUG_LOGGING",
+        "value": "true"
+      }
+    ],
+    "image": "863722843142.dkr.ecr.us-west-2.amazonaws.com/emf-python-canary",
+    "links": ["cloudwatch-agent-python"],
+    "name": "emf-python-canary"
+  },
+  {
+    "name": "cloudwatch-agent-python",
+    "image": "amazon/cloudwatch-agent:latest",
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "/ecs/emf-python-canary",
+        "awslogs-region": "us-west-2",
+        "awslogs-stream-prefix": "ecs",
+        "awslogs-create-group": "true"
+      }
+    },
+    "environment": [
+      {
+        "name": "CW_CONFIG_CONTENT",
+        "value": "{\"agent\":{\"omit_hostname\":true,\"debug\":true},\"logs\":{\"metrics_collected\":{\"emf\":{}}}}"
+      }
+    ]
+  }
+]

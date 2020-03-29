@@ -27,18 +27,22 @@ class TcpClient(SocketClient):
         self._endpoint = endpoint
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._write_lock = threading.Lock()
+        self._should_connect = True
 
     def connect(self) -> "TcpClient":
         try:
             self._sock.connect((self._endpoint.hostname, self._endpoint.port))
+            self._should_connect = False
         except socket.timeout as e:
             log.error("Socket timeout durring connect %s" % (e,))
+            self._should_connect = True
         except Exception as e:
             log.error("Failed to connect to the socket. %s" % (e,))
+            self._should_connect = True
         return self
 
     def send_message(self, message: bytes) -> None:
-        if self._sock._closed:  # type: ignore
+        if self._sock._closed or self._should_connect:  # type: ignore
             self.connect()
 
         with self._write_lock:
@@ -47,7 +51,10 @@ class TcpClient(SocketClient):
                 log.info("Submitted metrics to agent over TCP.")
             except socket.timeout as e:
                 log.error("Socket timeout durring send %s" % (e,))
+                self.connect()
             except socket.error as e:
-                log.error("Failed to write metrics to the socket. %s" % (e,))
+                log.error("Failed to write metrics to the socket due to socket.error. %s" % (e,))
+                self.connect()
             except Exception as e:
-                log.error("Failed to write metrics to the socket. %s" % (e,))
+                log.error("Failed to write metrics to the socket due to exception. %s" % (e,))
+                self.connect()

@@ -1,0 +1,19 @@
+version: 0.2
+
+env:
+  variables:
+    AWS_REGION: us-west-2
+  parameter-store:
+    TWINE_USERNAME: PyPIUsername
+    TWINE_PASSWORD: PyPIPassword
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+    commands:
+      - pip install tox
+      - pip install --user --upgrade twine
+  build:
+    commands:
+      - tox
+      - ./bin/publish-pypi.sh
