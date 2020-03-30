@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from aws_embedded_metrics.environment.environments import Environments
+
 
 class Configuration:
     def __init__(
@@ -22,6 +24,7 @@ class Configuration:
         log_stream_name: str,
         agent_endpoint: str,
         ec2_metadata_endpoint: str = None,
+        environment: Environments = Environments.Unknown
     ):
         self.debug_logging_enabled = debug_logging_enabled
         self.service_name = service_name
@@ -30,3 +33,4 @@ class Configuration:
         self.log_stream_name = log_stream_name
         self.agent_endpoint = agent_endpoint
         self.ec2_metadata_endpoint = ec2_metadata_endpoint
+        self.environment = environment

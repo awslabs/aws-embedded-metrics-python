@@ -13,6 +13,7 @@
 
 import os
 from aws_embedded_metrics.config.configuration import Configuration
+from aws_embedded_metrics.environment.environments import Environments
 
 ENV_VAR_PREFIX = "AWS_EMF"
 
@@ -23,6 +24,7 @@ LOG_GROUP_NAME = "LOG_GROUP_NAME"
 LOG_STREAM_NAME = "LOG_STREAM_NAME"
 AGENT_ENDPOINT = "AGENT_ENDPOINT"
 EC2_METADATA_ENDPOINT = "EC2_METADATA_ENDPOINT"
+ENVIRONMENT_OVERRIDE = "ENVIRONMENT"
 
 
 class EnvironmentConfigurationProvider:
@@ -39,6 +41,7 @@ class EnvironmentConfigurationProvider:
             self.__get_env_var(LOG_STREAM_NAME),
             self.__get_env_var(AGENT_ENDPOINT),
             self.__get_env_var(EC2_METADATA_ENDPOINT),
+            self.__get_environment_override(),
         )
 
     @staticmethod
@@ -54,3 +57,13 @@ class EnvironmentConfigurationProvider:
         if value is None:
             return False
         return value.lower() == "true"
+
+    @staticmethod
+    def __get_environment_override() -> Environments:
+        value = os.environ.get(f"{ENV_VAR_PREFIX}_{ENVIRONMENT_OVERRIDE}")
+        if value is not None and len(value) > 0:
+            try:
+                return Environments[value]
+            except Exception:
+                pass
+        return Environments.Unknown
