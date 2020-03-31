@@ -17,7 +17,7 @@ from aws_embedded_metrics.serializers import Serializer
 from aws_embedded_metrics.serializers.log_serializer import LogSerializer
 
 
-class LambdaSink(Sink):
+class ConsoleSink(Sink):
     def __init__(self, serializer: Serializer = LogSerializer()):
         self.serializer = serializer
 
@@ -26,4 +26,4 @@ class LambdaSink(Sink):
 
     @staticmethod
     def name() -> str:
-        return "LambdaSink"
+        return "ConsoleSink"

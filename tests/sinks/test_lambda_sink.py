@@ -1,10 +1,10 @@
-from aws_embedded_metrics.sinks.lambda_sink import LambdaSink
+from aws_embedded_metrics.sinks.console_sink import ConsoleSink
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 
 
 def test_accept_writes_to_stdout(capfd):
     # arrange
-    sink = LambdaSink()
+    sink = ConsoleSink()
     context = MetricsContext.empty()
     context.meta["Timestamp"] = 1
 

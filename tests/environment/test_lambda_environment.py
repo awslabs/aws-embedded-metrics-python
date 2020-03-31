@@ -1,6 +1,6 @@
 import os
 from aws_embedded_metrics.environment.lambda_environment import LambdaEnvironment
-from aws_embedded_metrics.sinks.lambda_sink import LambdaSink
+from aws_embedded_metrics.sinks.console_sink import ConsoleSink
 import pytest
 from faker import Faker
 
@@ -57,7 +57,7 @@ def test_get_log_group_name_returns_function_name():
     assert result == expected_name
 
 
-def test_create_sink_creates_LambdaSink():
+def test_create_sink_creates_ConsoleSink():
     # arrange
     env = LambdaEnvironment()
 
@@ -65,4 +65,4 @@ def test_create_sink_creates_LambdaSink():
     result = env.get_sink()
 
     # assert
-    assert isinstance(result, LambdaSink)
+    assert isinstance(result, ConsoleSink)

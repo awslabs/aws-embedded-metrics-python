@@ -15,7 +15,10 @@ from aws_embedded_metrics.environment import Environment
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.sinks import Sink
 from aws_embedded_metrics.sinks.console_sink import ConsoleSink
+from aws_embedded_metrics import config
 import os
+
+Config = config.get_config()
 
 
 def get_env(key: str) -> str:
@@ -27,28 +30,24 @@ def get_env(key: str) -> str:
 sink = ConsoleSink()
 
 
-class LambdaEnvironment(Environment):
+class LocalEnvironment(Environment):
     async def probe(self) -> bool:
-        return len(get_env("AWS_LAMBDA_FUNCTION_NAME")) > 0
+        # probe is not intended to be used in the LocalEnvironment
+        # To use the local environment you should set the environment
+        # override
+        return False
 
     def get_name(self) -> str:
-        return self.get_log_group_name()
+        return Config.service_name or "Unknown"
 
     def get_type(self) -> str:
-        return "AWS::Lambda::Function"
+        return Config.service_type or "Local"
 
     def get_log_group_name(self) -> str:
-        return get_env("AWS_LAMBDA_FUNCTION_NAME")
+        return Config.log_group_name or f"{self.get_name()}-metrics"
 
     def configure_context(self, context: MetricsContext) -> None:
-        context.set_property("executionEnvironment", get_env("AWS_EXECUTION_ENV"))
-        context.set_property("memorySize", get_env("AWS_LAMBDA_FUNCTION_MEMORY_SIZE"))
-        context.set_property("functionVersion", get_env("AWS_LAMBDA_FUNCTION_VERSION"))
-        context.set_property("logStreamId", get_env("AWS_LAMBDA_LOG_STREAM_NAME"))
-        trace_id = get_env("_X_AMZN_TRACE_ID")
-
-        if len(trace_id) > 0 and "Sampled=1" in trace_id:
-            context.set_property("traceId", trace_id)
+        pass
 
     def get_sink(self) -> Sink:
         """Create the appropriate sink for this environment."""

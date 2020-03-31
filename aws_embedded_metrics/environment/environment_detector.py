@@ -13,14 +13,36 @@
 
 import logging
 from aws_embedded_metrics.environment import Environment
+from aws_embedded_metrics.environment.environments import Environments
 from aws_embedded_metrics.environment.default_environment import DefaultEnvironment
 from aws_embedded_metrics.environment.lambda_environment import LambdaEnvironment
 from aws_embedded_metrics.environment.ec2_environment import EC2Environment
+from aws_embedded_metrics.environment.local_environment import LocalEnvironment
+from aws_embedded_metrics import config
 from typing import Optional
 
 log = logging.getLogger(__name__)
 
-environments = [LambdaEnvironment(), EC2Environment()]
+lambda_environment = LambdaEnvironment()
+ec2_environment = EC2Environment()
+default_environment = DefaultEnvironment()
+local_environment = LocalEnvironment()
+
+environments = [lambda_environment, ec2_environment]
+Config = config.get_config()
+
+
+def get_environment_from_override() -> Environment:
+    if Config.environment == Environments.Agent:
+        return default_environment
+    if Config.environment == Environments.EC2:
+        return ec2_environment
+    if Config.environment == Environments.Lambda:
+        return lambda_environment
+    if Config.environment == Environments.Local:
+        return local_environment
+
+    return default_environment
 
 
 class EnvironmentCache:
@@ -31,6 +53,12 @@ async def resolve_environment() -> Environment:
     if EnvironmentCache.environment is not None:
         log.debug("Environment resolved from cache.")
         return EnvironmentCache.environment
+
+    if Config.environment is not Environments.Unknown and Config.environment is not None:
+        log.info("Environment override provided: %s", Config.environment)
+        environment_override = get_environment_from_override()
+        if environment_override is not None:
+            return environment_override
 
     for env_under_test in environments:
         is_environment = False
@@ -49,5 +77,5 @@ async def resolve_environment() -> Environment:
             return env_under_test
 
     log.info("No environment was detected. Using default.")
-    EnvironmentCache.environment = DefaultEnvironment()
+    EnvironmentCache.environment = default_environment
     return EnvironmentCache.environment
