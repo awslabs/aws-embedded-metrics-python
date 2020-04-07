@@ -231,6 +231,25 @@ Config.log_stream_name = "LogStreamName";
 AWS_EMF_LOG_STREAM_NAME = LogStreamName;
 ```
 
+**NameSpace**: Overrides the CloudWatch [namespace](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#Namespace). If not set, a default value of aws-embedded-metrics will be used.
+
+Requirements:
+
+- Name Length 1-512 characters
+- Name must be ASCII characters only
+
+Example:
+
+```py
+# in process
+from aws_embedded_metrics.config import get_config
+Config = get_config()
+Config.namespace = "MyApplication";
+
+# environment
+AWS_EMF_NAMESPACE = MyApplication;
+```
+
 ## Examples
 
 Check out the [examples](https://github.com/awslabs/aws-embedded-metrics-python/tree/master/examples) directory to get started.
