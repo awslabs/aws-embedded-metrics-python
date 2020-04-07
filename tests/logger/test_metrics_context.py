@@ -1,7 +1,10 @@
+from aws_embedded_metrics import config
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics import utils
+from aws_embedded_metrics.constants import DEFAULT_NAMESPACE
 from _pytest.monkeypatch import MonkeyPatch
 import pytest
+from importlib import reload
 from faker import Faker
 
 fake = Faker()
@@ -16,12 +19,16 @@ def mock_time():
 
 
 def test_can_create_context_with_no_arguments(mock_time):
+    # reload the configuration module since it is loaded on
+    # startup and cached
+    reload(config)
+
     # arrange
     # act
     context = MetricsContext()
 
     # assert
-    assert context.namespace == "aws-embedded-metrics"
+    assert context.namespace == DEFAULT_NAMESPACE
     assert context.meta == {"Timestamp": mock_time}
     assert context.properties == {}
     assert context.dimensions == []

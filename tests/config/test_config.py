@@ -22,6 +22,7 @@ def test_can_get_config_from_environment(monkeypatch):
     log_stream = fake.word()
     agent_endpoint = fake.word()
     ec2_metadata_endpoint = fake.word()
+    namespace = fake.word()
 
     monkeypatch.setenv("AWS_EMF_ENABLE_DEBUG_LOGGING", str(debug_enabled))
     monkeypatch.setenv("AWS_EMF_SERVICE_NAME", service_name)
@@ -30,6 +31,7 @@ def test_can_get_config_from_environment(monkeypatch):
     monkeypatch.setenv("AWS_EMF_LOG_STREAM_NAME", log_stream)
     monkeypatch.setenv("AWS_EMF_AGENT_ENDPOINT", agent_endpoint)
     monkeypatch.setenv("AWS_EMF_EC2_METADATA_ENDPOINT", ec2_metadata_endpoint)
+    monkeypatch.setenv("AWS_EMF_NAMESPACE", namespace)
 
     # act
     result = get_config()
@@ -42,6 +44,7 @@ def test_can_get_config_from_environment(monkeypatch):
     assert result.log_stream_name == log_stream
     assert result.agent_endpoint == agent_endpoint
     assert result.ec2_metadata_endpoint == ec2_metadata_endpoint
+    assert result.namespace == namespace
 
 
 def test_can_override_config(monkeypatch):
@@ -53,6 +56,7 @@ def test_can_override_config(monkeypatch):
     monkeypatch.setenv("AWS_EMF_LOG_STREAM_NAME", fake.word())
     monkeypatch.setenv("AWS_EMF_AGENT_ENDPOINT", fake.word())
     monkeypatch.setenv("AWS_EMF_EC2_METADATA_ENDPOINT", fake.word())
+    monkeypatch.setenv("AWS_EMF_NAMESPACE", fake.word())
 
     config = get_config()
 
@@ -63,6 +67,7 @@ def test_can_override_config(monkeypatch):
     log_stream = fake.word()
     agent_endpoint = fake.word()
     ec2_metadata_endpoint = fake.word()
+    namespace = fake.word()
 
     # act
     config.debug_logging_enabled = debug_enabled
@@ -72,6 +77,7 @@ def test_can_override_config(monkeypatch):
     config.log_stream_name = log_stream
     config.agent_endpoint = agent_endpoint
     config.ec2_metadata_endpoint = ec2_metadata_endpoint
+    config.namespace = namespace
 
     # assert
     assert config.debug_logging_enabled == debug_enabled
@@ -81,3 +87,4 @@ def test_can_override_config(monkeypatch):
     assert config.log_stream_name == log_stream
     assert config.agent_endpoint == agent_endpoint
     assert config.ec2_metadata_endpoint == ec2_metadata_endpoint
+    assert config.namespace == namespace
