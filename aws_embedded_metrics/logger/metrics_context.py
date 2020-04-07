@@ -13,6 +13,7 @@
 
 
 from aws_embedded_metrics import constants, utils
+from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.logger.metric import Metric
 from typing import List, Dict, Any
 
@@ -30,7 +31,7 @@ class MetricsContext(object):
         default_dimensions: Dict[str, str] = None,
     ):
 
-        self.namespace: str = namespace or constants.DEFAULT_NAMESPACE
+        self.namespace: str = namespace or get_config().namespace or constants.DEFAULT_NAMESPACE
         self.properties: Dict[str, Any] = properties or {}
         self.dimensions: List[Dict[str, str]] = dimensions or []
         self.default_dimensions: Dict[str, str] = default_dimensions or {}

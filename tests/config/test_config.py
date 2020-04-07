@@ -1,6 +1,5 @@
 from aws_embedded_metrics import config
 from faker import Faker
-import os
 from importlib import reload
 
 
@@ -14,7 +13,7 @@ def get_config():
     return config.get_config()
 
 
-def test_can_get_config_from_environment():
+def test_can_get_config_from_environment(monkeypatch):
     # arrange
     debug_enabled = True
     service_name = fake.word()
@@ -24,13 +23,13 @@ def test_can_get_config_from_environment():
     agent_endpoint = fake.word()
     ec2_metadata_endpoint = fake.word()
 
-    os.environ["AWS_EMF_ENABLE_DEBUG_LOGGING"] = str(debug_enabled)
-    os.environ["AWS_EMF_SERVICE_NAME"] = service_name
-    os.environ["AWS_EMF_SERVICE_TYPE"] = service_type
-    os.environ["AWS_EMF_LOG_GROUP_NAME"] = log_group
-    os.environ["AWS_EMF_LOG_STREAM_NAME"] = log_stream
-    os.environ["AWS_EMF_AGENT_ENDPOINT"] = agent_endpoint
-    os.environ["AWS_EMF_EC2_METADATA_ENDPOINT"] = ec2_metadata_endpoint
+    monkeypatch.setenv("AWS_EMF_ENABLE_DEBUG_LOGGING", str(debug_enabled))
+    monkeypatch.setenv("AWS_EMF_SERVICE_NAME", service_name)
+    monkeypatch.setenv("AWS_EMF_SERVICE_TYPE", service_type)
+    monkeypatch.setenv("AWS_EMF_LOG_GROUP_NAME", log_group)
+    monkeypatch.setenv("AWS_EMF_LOG_STREAM_NAME", log_stream)
+    monkeypatch.setenv("AWS_EMF_AGENT_ENDPOINT", agent_endpoint)
+    monkeypatch.setenv("AWS_EMF_EC2_METADATA_ENDPOINT", ec2_metadata_endpoint)
 
     # act
     result = get_config()
@@ -45,15 +44,15 @@ def test_can_get_config_from_environment():
     assert result.ec2_metadata_endpoint == ec2_metadata_endpoint
 
 
-def test_can_override_config():
+def test_can_override_config(monkeypatch):
     # arrange
-    os.environ["AWS_EMF_ENABLE_DEBUG_LOGGING"] = str(True)
-    os.environ["AWS_EMF_SERVICE_NAME"] = fake.word()
-    os.environ["AWS_EMF_SERVICE_TYPE"] = fake.word()
-    os.environ["AWS_EMF_LOG_GROUP_NAME"] = fake.word()
-    os.environ["AWS_EMF_LOG_STREAM_NAME"] = fake.word()
-    os.environ["AWS_EMF_AGENT_ENDPOINT"] = fake.word()
-    os.environ["AWS_EMF_EC2_METADATA_ENDPOINT"] = fake.word()
+    monkeypatch.setenv("AWS_EMF_ENABLE_DEBUG_LOGGING", str(True))
+    monkeypatch.setenv("AWS_EMF_SERVICE_NAME", fake.word())
+    monkeypatch.setenv("AWS_EMF_SERVICE_TYPE", fake.word())
+    monkeypatch.setenv("AWS_EMF_LOG_GROUP_NAME", fake.word())
+    monkeypatch.setenv("AWS_EMF_LOG_STREAM_NAME", fake.word())
+    monkeypatch.setenv("AWS_EMF_AGENT_ENDPOINT", fake.word())
+    monkeypatch.setenv("AWS_EMF_EC2_METADATA_ENDPOINT", fake.word())
 
     config = get_config()
 
