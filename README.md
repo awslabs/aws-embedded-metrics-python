@@ -67,7 +67,7 @@ Requirements:
 Examples:
 
 ```py
-put_metric("Latency", 200, "Milliseconds");
+put_metric("Latency", 200, "Milliseconds")
 ```
 
 - **set_property**(key: str, value: Any) -> MetricsLogger
@@ -81,13 +81,13 @@ Requirements:
 Examples:
 
 ```py
-set_property("RequestId", "422b1569-16f6-4a03-b8f0-fe3fd9b100f8");
-set_property("InstanceId", "i-1234567890");
+set_property("RequestId", "422b1569-16f6-4a03-b8f0-fe3fd9b100f8")
+set_property("InstanceId", "i-1234567890")
 set_property("Device", {
   "Id": "61270781-c6ac-46f1-baf7-22c808af8162",
   "Name": "Transducer",
   "Model": "PT-1234"
-});
+})
 ```
 
 - **put_dimensions**(dimensions: Dict[str, str]) -> MetricsLogger
@@ -106,8 +106,8 @@ Requirements:
 Examples:
 
 ```py
-put_dimensions({ "Operation": "Aggregator" });
-put_dimensions({ "Operation": "Aggregator", "DeviceType": "Actuator" });
+put_dimensions({ "Operation": "Aggregator" })
+put_dimensions({ "Operation": "Aggregator", "DeviceType": "Actuator" })
 ```
 
 - **set_dimensions**(\*dimensions: Dict[str, str]) -> MetricsLogger
@@ -129,7 +129,7 @@ Examples:
 set_dimensions(
   { "Operation": "Aggregator" },
   { "Operation": "Aggregator", "DeviceType": "Actuator" }
-);
+)
 ```
 
 - **set_namespace**(value: str) -> MetricsLogger
@@ -144,7 +144,7 @@ Requirements:
 Examples:
 
 ```py
-set_namespace("MyApplication");
+set_namespace("MyApplication")
 ```
 
 - **flush**()
@@ -168,10 +168,10 @@ Example:
 # in process
 from aws_embedded_metrics.config import get_config
 Config = get_config()
-Config.service_name = "MyApp";
+Config.service_name = "MyApp"
 
 # environment
-AWS_EMF_SERVICE_NAME = MyApp;
+AWS_EMF_SERVICE_NAME = MyApp
 ```
 
 **ServiceType**: Overrides the type of the service. For services where the type cannot be inferred (e.g. Java process running on EC2), a default value of Unknown will be used if not explicitly set.
@@ -187,10 +187,10 @@ Example:
 # in process
 from aws_embedded_metrics.config import get_config
 Config = get_config()
-Config.service_type = "NodeJSWebApp";
+Config.service_type = "NodeJSWebApp"
 
 # environment
-AWS_EMF_SERVICE_TYPE = NodeJSWebApp;
+AWS_EMF_SERVICE_TYPE = NodeJSWebApp
 ```
 
 **LogGroupName**: For agent-based platforms, you may optionally configure the destination log group that metrics should be delivered to. This value will be passed from the library to the agent in the Embedded Metric payload. If a LogGroup is not provided, the default value will be derived from the service name: <service-name>-metrics
@@ -206,10 +206,10 @@ Example:
 # in process
 from aws_embedded_metrics.config import get_config
 Config = get_config()
-Config.log_group_name = "LogGroupName";
+Config.log_group_name = "LogGroupName"
 
 # environment
-AWS_EMF_LOG_GROUP_NAME = LogGroupName;
+AWS_EMF_LOG_GROUP_NAME = LogGroupName
 ```
 
 **LogStreamName**: For agent-based platforms, you may optionally configure the destination log stream that metrics should be delivered to. This value will be passed from the library to the agent in the Embedded Metric payload. If a LogGroup is not provided, the default value will be derived by the agent (this will likely be the hostname).
@@ -225,10 +225,10 @@ Example:
 # in process
 from aws_embedded_metrics.config import get_config
 Config = get_config()
-Config.log_stream_name = "LogStreamName";
+Config.log_stream_name = "LogStreamName"
 
 # environment
-AWS_EMF_LOG_STREAM_NAME = LogStreamName;
+AWS_EMF_LOG_STREAM_NAME = LogStreamName
 ```
 
 **NameSpace**: Overrides the CloudWatch [namespace](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#Namespace). If not set, a default value of aws-embedded-metrics will be used.
@@ -244,10 +244,10 @@ Example:
 # in process
 from aws_embedded_metrics.config import get_config
 Config = get_config()
-Config.namespace = "MyApplication";
+Config.namespace = "MyApplication"
 
 # environment
-AWS_EMF_NAMESPACE = MyApplication;
+AWS_EMF_NAMESPACE = MyApplication
 ```
 
 ## Examples
