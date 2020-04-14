@@ -22,7 +22,7 @@ def test_serialize_dimensions():
     context.put_dimensions(dimensions)
 
     # act
-    result_json = serializer.serialize(context)
+    result_json = serializer.serialize(context)[0]
 
     # assert
     assert_json_equality(result_json, expected)
@@ -53,7 +53,7 @@ def test_cannot_serialize_more_than_9_dimensions():
     context.put_dimensions(dimensions)
 
     # act
-    result_json = serializer.serialize(context)
+    result_json = serializer.serialize(context)[0]
 
     # assert
     assert_json_equality(result_json, expected)
@@ -71,7 +71,7 @@ def test_serialize_properties():
     context.set_property(expected_key, expected_value)
 
     # act
-    result_json = serializer.serialize(context)
+    result_json = serializer.serialize(context)[0]
 
     # assert
     assert_json_equality(result_json, expected)
@@ -94,10 +94,39 @@ def test_serialize_metrics():
     context.put_metric(expected_key, expected_value)
 
     # act
-    result_json = serializer.serialize(context)
+    result_json = serializer.serialize(context)[0]
 
     # assert
     assert_json_equality(result_json, expected)
+
+
+def test_serialize_more_than_100_metrics():
+    # arrange
+    expected_value = fake.word()
+    expected_batches = 3
+    metrics = 295
+
+    context = get_context()
+    for index in range(metrics):
+        expected_key = f"Metric-{index}"
+        context.put_metric(expected_key, expected_value)
+
+    # act
+    results = serializer.serialize(context)
+
+    # assert
+    assert len(results) == expected_batches
+
+    metric_index = 0
+    for batch_index in range(expected_batches):
+        expected_metric_count = metrics % 100 if (batch_index == expected_batches - 1) else 100
+        result_json = results[batch_index]
+        result_obj = json.loads(result_json)
+        assert len(result_obj["_aws"]["CloudWatchMetrics"][0]["Metrics"]) == expected_metric_count
+
+        for index in range(expected_metric_count):
+            assert result_obj[f"Metric-{metric_index}"] == expected_value
+            metric_index += 1
 
 
 # Test utility method

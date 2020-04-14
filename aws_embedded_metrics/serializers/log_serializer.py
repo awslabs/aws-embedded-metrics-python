@@ -13,14 +13,14 @@
 
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.serializers import Serializer
-from aws_embedded_metrics.constants import MAX_DIMENSIONS
+from aws_embedded_metrics.constants import MAX_DIMENSIONS, MAX_METRICS_PER_EVENT
 import json
 from typing import Any, Dict, List
 
 
 class LogSerializer(Serializer):
     @staticmethod
-    def serialize(context: MetricsContext) -> str:
+    def serialize(context: MetricsContext) -> List[str]:
         dimension_keys = []
         dimensions_properties: Dict[str, str] = {}
 
@@ -38,6 +38,8 @@ class LogSerializer(Serializer):
         }
         cloud_watch_metrics = [metric_definitions]
 
+        event_batches: List[str] = []
+
         body: Dict[str, Any] = {
             **dimensions_properties,
             **context.properties,
@@ -53,4 +55,13 @@ class LogSerializer(Serializer):
 
             metric_pointers.append({"Name": metric_name, "Unit": metric.unit})
 
-        return json.dumps(body)
+            should_serialize: bool = len(metric_pointers) == MAX_METRICS_PER_EVENT
+            if should_serialize:
+                event_batches.append(json.dumps(body))
+                metric_pointers = []
+                body["_aws"]["CloudWatchMetrics"][0]["Metrics"] = metric_pointers
+
+        if not event_batches or metric_pointers:
+            event_batches.append(json.dumps(body))
+
+        return event_batches

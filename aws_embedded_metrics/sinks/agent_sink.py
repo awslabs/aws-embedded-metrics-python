@@ -66,14 +66,15 @@ class AgentSink(Sink):
         if self.log_steam_name is not None:
             context.meta["LogStreamName"] = self.log_steam_name
 
-        serialized_content = self.serializer.serialize(context) + '\n'
         log.info(
             "Parsed agent endpoint (%s) %s:%s",
             self.endpoint.scheme,
             self.endpoint.hostname,
             self.endpoint.port,
         )
-        self.client.send_message(serialized_content.encode('utf-8'))
+        for serialized_content in self.serializer.serialize(context):
+            message = serialized_content + "\n"
+            self.client.send_message(message.encode('utf-8'))
 
     @staticmethod
     def name() -> str:
