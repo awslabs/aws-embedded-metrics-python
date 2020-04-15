@@ -129,6 +129,54 @@ def test_serialize_more_than_100_metrics():
             metric_index += 1
 
 
+def test_serialize_with_multiple_metrics():
+    # arrange
+    metrics = 2
+    expected = {**get_empty_payload()}
+    context = get_context()
+
+    for index in range(metrics):
+        expected_key = f"Metric-{index}"
+        expected_value = fake.word()
+        context.put_metric(expected_key, expected_value)
+
+        expected_metric_definition = {"Name": expected_key, "Unit": "None"}
+        expected[expected_key] = expected_value
+        expected["_aws"]["CloudWatchMetrics"][0]["Metrics"].append(
+            expected_metric_definition
+        )
+
+    # act
+    results = serializer.serialize(context)
+
+    # assert
+    assert len(results) == 1
+    assert results == [json.dumps(expected)]
+
+
+def test_serialize_metrics_with_multiple_datapoints():
+    # arrange
+    expected_key = fake.word()
+    expected_values = [fake.word(), fake.word()]
+    expected_metric_definition = {"Name": expected_key, "Unit": "None"}
+    expected = {**get_empty_payload()}
+    expected[expected_key] = expected_values
+    expected["_aws"]["CloudWatchMetrics"][0]["Metrics"].append(
+        expected_metric_definition
+    )
+
+    context = get_context()
+    for expected_value in expected_values:
+        context.put_metric(expected_key, expected_value)
+
+    # act
+    results = serializer.serialize(context)
+
+    # assert
+    assert len(results) == 1
+    assert results == [json.dumps(expected)]
+
+
 # Test utility method
 
 
