@@ -29,39 +29,40 @@ class LogSerializer(Serializer):
             dimension_keys.append(keys[0:MAX_DIMENSIONS])
             dimensions_properties = {**dimensions_properties, **dimension_set}
 
-        metric_pointers: List[Dict[str, str]] = []
+        def create_body() -> Dict[str, Any]:
+            return {
+                **dimensions_properties,
+                **context.properties,
+                "_aws": {
+                    **context.meta,
+                    "CloudWatchMetrics": [
+                        {
+                            "Dimensions": dimension_keys,
+                            "Metrics": [],
+                            "Namespace": context.namespace,
+                        },
+                    ],
+                },
+            }
 
-        metric_definitions = {
-            "Dimensions": dimension_keys,
-            "Metrics": metric_pointers,
-            "Namespace": context.namespace,
-        }
-        cloud_watch_metrics = [metric_definitions]
-
+        current_body: Dict[str, Any] = create_body()
         event_batches: List[str] = []
-
-        body: Dict[str, Any] = {
-            **dimensions_properties,
-            **context.properties,
-            "_aws": {**context.meta, "CloudWatchMetrics": cloud_watch_metrics},
-        }
 
         for metric_name, metric in context.metrics.items():
 
             if len(metric.values) == 1:
-                body[metric_name] = metric.values[0]
+                current_body[metric_name] = metric.values[0]
             else:
-                body[metric_name] = metric.values
+                current_body[metric_name] = metric.values
 
-            metric_pointers.append({"Name": metric_name, "Unit": metric.unit})
+            current_body["_aws"]["CloudWatchMetrics"][0]["Metrics"].append({"Name": metric_name, "Unit": metric.unit})
 
-            should_serialize: bool = len(metric_pointers) == MAX_METRICS_PER_EVENT
+            should_serialize: bool = len(current_body["_aws"]["CloudWatchMetrics"][0]["Metrics"]) == MAX_METRICS_PER_EVENT
             if should_serialize:
-                event_batches.append(json.dumps(body))
-                metric_pointers = []
-                body["_aws"]["CloudWatchMetrics"][0]["Metrics"] = metric_pointers
+                event_batches.append(json.dumps(current_body))
+                current_body = create_body()
 
-        if not event_batches or metric_pointers:
-            event_batches.append(json.dumps(body))
+        if not event_batches or current_body["_aws"]["CloudWatchMetrics"][0]["Metrics"]:
+            event_batches.append(json.dumps(current_body))
 
         return event_batches
