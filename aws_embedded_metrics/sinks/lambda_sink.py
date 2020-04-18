@@ -22,7 +22,8 @@ class LambdaSink(Sink):
         self.serializer = serializer
 
     def accept(self, context: MetricsContext) -> None:
-        print(self.serializer.serialize(context))
+        for serialized_content in self.serializer.serialize(context):
+            print(serialized_content)
 
     @staticmethod
     def name() -> str:

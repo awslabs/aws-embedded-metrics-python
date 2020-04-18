@@ -13,10 +13,11 @@
 
 import abc
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
+from typing import List
 
 
 class Serializer(abc.ABC):
     @staticmethod
     @abc.abstractmethod
-    def serialize(context: MetricsContext) -> str:
+    def serialize(context: MetricsContext) -> List[str]:
         """Flushes the metrics context to the sink."""
