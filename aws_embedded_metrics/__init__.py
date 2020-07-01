@@ -13,4 +13,6 @@
 
 name = "aws_embedded_metrics"
 
-from aws_embedded_metrics.metric_scope import metric_scope  # noqa: F401
+from aws_embedded_metrics.metric_scope import metric_scope  # noqa: F401 E402
+from aws_embedded_metrics.logger.metrics_logger import MetricsLogger  # noqa: F401 E402
+from aws_embedded_metrics.logger.metrics_context import MetricsContext  # noqa: F401 E402
