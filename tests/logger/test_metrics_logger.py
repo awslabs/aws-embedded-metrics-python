@@ -7,6 +7,7 @@ from faker import Faker
 from asyncio import Future
 from importlib import reload
 import os
+import sys
 
 fake = Faker()
 
@@ -48,6 +49,108 @@ async def test_can_put_metric(mocker):
     context = get_flushed_context(sink)
     assert context.metrics[expected_key].values == [expected_value]
     assert context.metrics[expected_key].unit == "None"
+
+
+@pytest.mark.asyncio
+async def test_can_add_stack_trace(mocker):
+    # arrange
+    expected_key = fake.word()
+    expected_details = fake.word()
+    expected_error_str = fake.word()
+
+    logger, sink, env = get_logger_and_sink(mocker)
+
+    from configparser import Error  # Just some non-builtin exception
+
+    # act
+    try:
+        raise Error(expected_error_str)
+    except Error:
+        logger.add_stack_trace(expected_key, expected_details)
+    await logger.flush()
+
+    # assert
+    context = get_flushed_context(sink)
+    value = context.properties[expected_key]
+    assert isinstance(value, dict)
+    assert value["details"] == expected_details
+    assert value["error_type"] == "configparser.Error"
+    assert value["error_str"] == expected_error_str
+    assert value["traceback"].split("\n")[-2] == "    raise Error(expected_error_str)"
+
+
+@pytest.mark.asyncio
+async def test_can_add_stack_trace_for_builtin(mocker):
+    # arrange
+    expected_key = fake.word()
+    expected_details = fake.word()
+    expected_error_str = fake.word()
+
+    logger, sink, env = get_logger_and_sink(mocker)
+
+    # act
+    try:
+        raise ValueError(expected_error_str)
+    except ValueError:
+        logger.add_stack_trace(expected_key, expected_details)
+    await logger.flush()
+
+    # assert
+    context = get_flushed_context(sink)
+    value = context.properties[expected_key]
+    assert isinstance(value, dict)
+    assert value["details"] == expected_details
+    assert value["error_type"] == "ValueError"
+    assert value["error_str"] == expected_error_str
+    assert value["traceback"].split("\n")[-2] == "    raise ValueError(expected_error_str)"
+
+
+@pytest.mark.asyncio
+async def test_can_add_empty_stack_trace(mocker):
+    # arrange
+    expected_key = fake.word()
+
+    logger, sink, env = get_logger_and_sink(mocker)
+
+    # act
+    logger.add_stack_trace(expected_key)
+    await logger.flush()
+
+    # assert
+    context = get_flushed_context(sink)
+    value = context.properties[expected_key]
+    assert isinstance(value, dict)
+    assert "value" not in value
+    assert value["error_type"] is None
+    assert value["error_str"] is None
+    assert value["traceback"] is None
+
+
+@pytest.mark.asyncio
+async def test_can_add_stack_trace_manually(mocker):
+    # arrange
+    expected_key = fake.word()
+    expected_details = fake.word()
+    expected_error_str = fake.word()
+
+    logger, sink, env = get_logger_and_sink(mocker)
+
+    # act
+    try:
+        raise ValueError(expected_error_str)
+    except ValueError:
+        exc_info = sys.exc_info()
+    logger.add_stack_trace(expected_key, expected_details, exc_info=exc_info)
+    await logger.flush()
+
+    # assert
+    context = get_flushed_context(sink)
+    value = context.properties[expected_key]
+    assert isinstance(value, dict)
+    assert value["details"] == expected_details
+    assert value["error_type"] == "ValueError"
+    assert value["error_str"] == expected_error_str
+    assert value["traceback"].split("\n")[-2] == "    raise ValueError(expected_error_str)"
 
 
 @pytest.mark.asyncio

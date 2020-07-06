@@ -14,7 +14,9 @@
 from aws_embedded_metrics.environment import Environment
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.config import get_config
-from typing import Any, Awaitable, Callable, Dict
+from typing import Any, Awaitable, Callable, Dict, Tuple
+import sys
+import traceback
 
 Config = get_config()
 
@@ -71,6 +73,35 @@ class MetricsLogger:
 
     def put_metric(self, key: str, value: float, unit: str = "None") -> "MetricsLogger":
         self.context.put_metric(key, value, unit)
+        return self
+
+    def add_stack_trace(self, key: str, details: Any = None, exc_info: Tuple = None) -> "MetricsLogger":
+        if not exc_info:
+            exc_info = sys.exc_info()
+
+        err_cls, err, tb = exc_info
+
+        if err_cls is None:
+            error_type = None
+            error_str = None
+            traceback_str = None
+        else:
+            if err_cls.__module__ == "builtins":
+                error_type = err_cls.__name__
+            else:
+                error_type = "{module}.{name}".format(module=err_cls.__module__, name=err_cls.__name__)
+            error_str = str(err)
+            traceback_str = ''.join(traceback.format_tb(tb))
+
+        trace_value = {}
+        if details:
+            trace_value["details"] = details
+        trace_value.update({
+            "error_type": error_type,
+            "error_str": error_str,
+            "traceback": traceback_str,
+        })
+        self.set_property(key, trace_value)
         return self
 
     def new(self) -> "MetricsLogger":
