@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="aws-embedded-metrics",
-    version="1.0.3",
+    version="1.0.4",
     author="Amazon Web Services",
     author_email="jarnance@amazon.com",
     description="AWS Embedded Metrics Package",
