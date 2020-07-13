@@ -1,6 +1,7 @@
 from aws_embedded_metrics.metric_scope import metric_scope
 from aws_embedded_metrics.logger.metrics_logger import MetricsLogger
 import asyncio
+import time
 import pytest
 
 flush_invocations = []
@@ -148,6 +149,24 @@ def test_sync_scope_handles_exceptions(mock_logger):
     assert exceptions_thrown == 1
     assert InvocationTracker.invocations == 1
 
+
+def test_sync_scope_sets_time_based_on_when_wrapped_fcn_is_called(mock_logger):
+    # arrange
+    sleep_duration_sec = 3
+
+    @metric_scope
+    def my_handler(metrics):
+        return metrics
+
+    time.sleep(sleep_duration_sec)
+
+    # act
+    expected_timestamp_second = int(round(time.time()))
+    logger = my_handler()
+
+    # assert
+    actual_timestamp_second = int(round(logger.context.meta["Timestamp"] / 1000))
+    assert expected_timestamp_second == actual_timestamp_second
 
 # Test helpers
 

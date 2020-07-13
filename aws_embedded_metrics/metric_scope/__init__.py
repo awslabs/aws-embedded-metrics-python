@@ -18,12 +18,12 @@ from functools import wraps
 
 
 def metric_scope(fn):  # type: ignore
-    logger = create_metrics_logger()
 
     if asyncio.iscoroutinefunction(fn):
 
         @wraps(fn)
         async def wrapper(*args, **kwargs):  # type: ignore
+            logger = create_metrics_logger()
             if "metrics" in inspect.signature(fn).parameters:
                 kwargs["metrics"] = logger
             try:
@@ -38,6 +38,7 @@ def metric_scope(fn):  # type: ignore
 
         @wraps(fn)
         def wrapper(*args, **kwargs):  # type: ignore
+            logger = create_metrics_logger()
             if "metrics" in inspect.signature(fn).parameters:
                 kwargs["metrics"] = logger
             try:
