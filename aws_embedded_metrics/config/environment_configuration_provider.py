@@ -24,6 +24,7 @@ LOG_STREAM_NAME = "LOG_STREAM_NAME"
 AGENT_ENDPOINT = "AGENT_ENDPOINT"
 EC2_METADATA_ENDPOINT = "EC2_METADATA_ENDPOINT"
 NAMESPACE = "NAMESPACE"
+DISABLE_METRIC_EXTRACTION = "DISABLE_METRIC_EXTRACTION"
 
 
 class EnvironmentConfigurationProvider:
@@ -41,6 +42,7 @@ class EnvironmentConfigurationProvider:
             self.__get_env_var(AGENT_ENDPOINT),
             self.__get_env_var(EC2_METADATA_ENDPOINT),
             self.__get_env_var(NAMESPACE),
+            self.__get_bool_env_var(DISABLE_METRIC_EXTRACTION),
         )
 
     @staticmethod

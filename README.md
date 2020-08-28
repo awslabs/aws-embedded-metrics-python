@@ -250,6 +250,21 @@ Config.namespace = "MyApplication"
 AWS_EMF_NAMESPACE = MyApplication
 ```
 
+**DISABLE_METRIC_EXTRACTION**: Disables extraction of metrics by CloudWatch, by omitting EMF
+metadata from serialized log records.
+
+Example:
+
+```py
+# in process
+from aws_embedded_metrics.config import get_config
+Config = get_config()
+Config.disable_metric_extraction = True
+
+# environment
+AWS_EMF_DISABLE_METRIC_EXTRACTION = true
+```
+
 ## Examples
 
 Check out the [examples](https://github.com/awslabs/aws-embedded-metrics-python/tree/master/examples) directory to get started.

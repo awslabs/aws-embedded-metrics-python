@@ -1,3 +1,4 @@
+from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.serializers.log_serializer import LogSerializer
 from faker import Faker
@@ -175,6 +176,27 @@ def test_serialize_metrics_with_multiple_datapoints():
     # assert
     assert len(results) == 1
     assert results == [json.dumps(expected)]
+
+
+def test_serialize_metrics_with_aggregation_disabled():
+    """Test log records don't contain metadata when aggregation is disabled."""
+    # arrange
+    config = get_config()
+    config.disable_metric_extraction = True
+
+    expected_key = fake.word()
+    expected_value = fake.random.randrange(0, 100)
+
+    expected = {expected_key: expected_value}
+
+    context = get_context()
+    context.put_metric(expected_key, expected_value)
+
+    # act
+    result_json = serializer.serialize(context)[0]
+
+    # assert
+    assert_json_equality(result_json, expected)
 
 
 # Test utility method

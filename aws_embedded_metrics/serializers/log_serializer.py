@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.serializers import Serializer
 from aws_embedded_metrics.constants import MAX_DIMENSIONS, MAX_METRICS_PER_EVENT
@@ -18,9 +19,12 @@ import json
 from typing import Any, Dict, List
 
 
+
 class LogSerializer(Serializer):
     @staticmethod
     def serialize(context: MetricsContext) -> List[str]:
+        config = get_config()
+
         dimension_keys = []
         dimensions_properties: Dict[str, str] = {}
 
@@ -30,10 +34,12 @@ class LogSerializer(Serializer):
             dimensions_properties = {**dimensions_properties, **dimension_set}
 
         def create_body() -> Dict[str, Any]:
-            return {
+            body = {
                 **dimensions_properties,
                 **context.properties,
-                "_aws": {
+            }
+            if not config.disable_metric_extraction:
+                body["_aws"] = {
                     **context.meta,
                     "CloudWatchMetrics": [
                         {
@@ -42,11 +48,12 @@ class LogSerializer(Serializer):
                             "Namespace": context.namespace,
                         },
                     ],
-                },
-            }
+                }
+            return body
 
         current_body: Dict[str, Any] = create_body()
         event_batches: List[str] = []
+        num_metrics_in_current_body = 0
 
         for metric_name, metric in context.metrics.items():
 
@@ -55,14 +62,18 @@ class LogSerializer(Serializer):
             else:
                 current_body[metric_name] = metric.values
 
-            current_body["_aws"]["CloudWatchMetrics"][0]["Metrics"].append({"Name": metric_name, "Unit": metric.unit})
+            if not config.disable_metric_extraction:
+                current_body["_aws"]["CloudWatchMetrics"][0]["Metrics"].append({"Name": metric_name, "Unit": metric.unit})
 
-            should_serialize: bool = len(current_body["_aws"]["CloudWatchMetrics"][0]["Metrics"]) == MAX_METRICS_PER_EVENT
+            num_metrics_in_current_body += 1
+
+            should_serialize: bool = num_metrics_in_current_body == MAX_METRICS_PER_EVENT
             if should_serialize:
                 event_batches.append(json.dumps(current_body))
                 current_body = create_body()
+                num_metrics_in_current_body = 0
 
-        if not event_batches or current_body["_aws"]["CloudWatchMetrics"][0]["Metrics"]:
+        if not event_batches or num_metrics_in_current_body > 0:
             event_batches.append(json.dumps(current_body))
 
         return event_batches
