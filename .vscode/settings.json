@@ -1,5 +1,0 @@
-{
-  "python.linting.flake8Path": "/usr/local/bin/flake8",
-  "python.linting.flake8Enabled": true,
-  "python.linting.pylintEnabled": false
-}
