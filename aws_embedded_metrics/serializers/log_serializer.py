@@ -19,7 +19,6 @@ import json
 from typing import Any, Dict, List
 
 
-
 class LogSerializer(Serializer):
     @staticmethod
     def serialize(context: MetricsContext) -> List[str]:
@@ -34,7 +33,7 @@ class LogSerializer(Serializer):
             dimensions_properties = {**dimensions_properties, **dimension_set}
 
         def create_body() -> Dict[str, Any]:
-            body = {
+            body: Dict[str, Any] = {
                 **dimensions_properties,
                 **context.properties,
             }
