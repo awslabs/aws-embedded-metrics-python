@@ -23,6 +23,7 @@ class Configuration:
         agent_endpoint: str,
         ec2_metadata_endpoint: str = None,
         namespace: str = None,
+        disable_metric_extraction: bool = False,
     ):
         self.debug_logging_enabled = debug_logging_enabled
         self.service_name = service_name
@@ -32,3 +33,4 @@ class Configuration:
         self.agent_endpoint = agent_endpoint
         self.ec2_metadata_endpoint = ec2_metadata_endpoint
         self.namespace = namespace
+        self.disable_metric_extraction = disable_metric_extraction

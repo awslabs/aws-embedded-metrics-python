@@ -1,3 +1,6 @@
+from importlib import reload
+
+from aws_embedded_metrics import config
 from aws_embedded_metrics.sinks.lambda_sink import LambdaSink
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from faker import Faker
@@ -9,6 +12,8 @@ fake = Faker()
 
 def test_accept_writes_to_stdout(capfd):
     # arrange
+    reload(config)
+
     sink = LambdaSink()
     context = MetricsContext.empty()
     context.meta["Timestamp"] = 1
