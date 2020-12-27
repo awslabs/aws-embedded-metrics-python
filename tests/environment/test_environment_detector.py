@@ -3,7 +3,7 @@ import os
 import pytest
 from importlib import reload
 
-from aws_embedded_metrics.config import get_config
+from aws_embedded_metrics import config
 from aws_embedded_metrics.environment.lambda_environment import LambdaEnvironment
 from aws_embedded_metrics.environment.default_environment import DefaultEnvironment
 
@@ -11,7 +11,6 @@ from aws_embedded_metrics.environment import ec2_environment
 from aws_embedded_metrics.environment import environment_detector
 
 fake = Faker()
-Config = get_config()
 
 
 @pytest.fixture
@@ -60,3 +59,31 @@ async def test_resolve_environment_returns_default_envionment(before):
 
     # assert
     assert isinstance(result, DefaultEnvironment)
+
+
+@pytest.mark.asyncio
+async def test_resolve_environment_returns_override_ec2(before, monkeypatch):
+    # arrange
+    monkeypatch.setenv("AWS_EMF_ENVIRONMENT", "ec2")
+    reload(config)
+    reload(environment_detector)
+
+    # act
+    result = await environment_detector.resolve_environment()
+
+    # assert
+    assert isinstance(result, ec2_environment.EC2Environment)
+
+
+@pytest.mark.asyncio
+async def test_resolve_environment_returns_override_lambda(before, monkeypatch):
+    # arrange
+    monkeypatch.setenv("AWS_EMF_ENVIRONMENT", "lambda")
+    reload(config)
+    reload(environment_detector)
+
+    # act
+    result = await environment_detector.resolve_environment()
+
+    # assert
+    assert isinstance(result, LambdaEnvironment)

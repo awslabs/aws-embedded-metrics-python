@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import logging
+from aws_embedded_metrics import config
 from aws_embedded_metrics.environment import Environment
 from aws_embedded_metrics.environment.default_environment import DefaultEnvironment
 from aws_embedded_metrics.environment.lambda_environment import LambdaEnvironment
@@ -20,7 +21,11 @@ from typing import Optional
 
 log = logging.getLogger(__name__)
 
-environments = [LambdaEnvironment(), EC2Environment()]
+lambda_environment = LambdaEnvironment()
+ec2_environment = EC2Environment()
+default_environment = DefaultEnvironment()
+environments = [lambda_environment, ec2_environment]
+Config = config.get_config()
 
 
 class EnvironmentCache:
@@ -30,6 +35,19 @@ class EnvironmentCache:
 async def resolve_environment() -> Environment:
     if EnvironmentCache.environment is not None:
         log.debug("Environment resolved from cache.")
+        return EnvironmentCache.environment
+
+    if Config.environment:
+        lower_configured_enviroment = Config.environment.lower()
+        if lower_configured_enviroment == "lambda":
+            EnvironmentCache.environment = lambda_environment
+        elif lower_configured_enviroment == "ec2":
+            EnvironmentCache.environment = ec2_environment
+        elif lower_configured_enviroment == "default":
+            EnvironmentCache.environment = default_environment
+        else:
+            log.info("Failed to understand environment override: %s", Config.environment)
+    if EnvironmentCache.environment is not None:
         return EnvironmentCache.environment
 
     for env_under_test in environments:
@@ -49,5 +67,5 @@ async def resolve_environment() -> Environment:
             return env_under_test
 
     log.info("No environment was detected. Using default.")
-    EnvironmentCache.environment = DefaultEnvironment()
+    EnvironmentCache.environment = default_environment
     return EnvironmentCache.environment
