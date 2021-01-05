@@ -25,6 +25,7 @@ AGENT_ENDPOINT = "AGENT_ENDPOINT"
 EC2_METADATA_ENDPOINT = "EC2_METADATA_ENDPOINT"
 NAMESPACE = "NAMESPACE"
 DISABLE_METRIC_EXTRACTION = "DISABLE_METRIC_EXTRACTION"
+ENVIRONMENT_OVERRIDE = "ENVIRONMENT"
 
 
 class EnvironmentConfigurationProvider:
@@ -43,6 +44,7 @@ class EnvironmentConfigurationProvider:
             self.__get_env_var(EC2_METADATA_ENDPOINT),
             self.__get_env_var(NAMESPACE),
             self.__get_bool_env_var(DISABLE_METRIC_EXTRACTION),
+            self.__get_env_var(ENVIRONMENT_OVERRIDE),
         )
 
     @staticmethod

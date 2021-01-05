@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional
+
 
 class Configuration:
     def __init__(
@@ -24,6 +26,7 @@ class Configuration:
         ec2_metadata_endpoint: str = None,
         namespace: str = None,
         disable_metric_extraction: bool = False,
+        environment: Optional[str] = None,
     ):
         self.debug_logging_enabled = debug_logging_enabled
         self.service_name = service_name
@@ -34,3 +37,4 @@ class Configuration:
         self.ec2_metadata_endpoint = ec2_metadata_endpoint
         self.namespace = namespace
         self.disable_metric_extraction = disable_metric_extraction
+        self.environment = environment
