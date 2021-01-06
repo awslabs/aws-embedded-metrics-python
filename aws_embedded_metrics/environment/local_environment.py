@@ -11,45 +11,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.environment import Environment
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.sinks import Sink
 from aws_embedded_metrics.sinks.stdout_sink import StdoutSink
-import os
+from typing import Optional
+
+Config = get_config()
 
 
-def get_env(key: str) -> str:
-    if key in os.environ:
-        return os.environ[key]
-    return ""
+class LocalEnvironment(Environment):
+    def __init__(self) -> None:
+        self.sink: Optional[Sink] = None
 
-
-sink = StdoutSink()
-
-
-class LambdaEnvironment(Environment):
     async def probe(self) -> bool:
-        return len(get_env("AWS_LAMBDA_FUNCTION_NAME")) > 0
+        return False
 
     def get_name(self) -> str:
-        return self.get_log_group_name()
+        return Config.service_name or "Unknown"
 
     def get_type(self) -> str:
-        return "AWS::Lambda::Function"
+        return Config.service_type or "Unknown"
 
     def get_log_group_name(self) -> str:
-        return get_env("AWS_LAMBDA_FUNCTION_NAME")
+        return Config.log_group_name or f"{self.get_name()}-metrics"
 
     def configure_context(self, context: MetricsContext) -> None:
-        context.set_property("executionEnvironment", get_env("AWS_EXECUTION_ENV"))
-        context.set_property("memorySize", get_env("AWS_LAMBDA_FUNCTION_MEMORY_SIZE"))
-        context.set_property("functionVersion", get_env("AWS_LAMBDA_FUNCTION_VERSION"))
-        context.set_property("logStreamId", get_env("AWS_LAMBDA_LOG_STREAM_NAME"))
-        trace_id = get_env("_X_AMZN_TRACE_ID")
-
-        if len(trace_id) > 0 and "Sampled=1" in trace_id:
-            context.set_property("traceId", trace_id)
+        pass
 
     def get_sink(self) -> Sink:
-        """Create the appropriate sink for this environment."""
-        return sink
+        if self.sink is None:
+            self.sink = StdoutSink()
+        return self.sink
