@@ -17,14 +17,15 @@ from aws_embedded_metrics.serializers import Serializer
 from aws_embedded_metrics.serializers.log_serializer import LogSerializer
 
 
-class LambdaSink(Sink):
+class StdoutSink(Sink):
     def __init__(self, serializer: Serializer = LogSerializer()):
         self.serializer = serializer
 
     def accept(self, context: MetricsContext) -> None:
         for serialized_content in self.serializer.serialize(context):
-            print(serialized_content)
+            if serialized_content:
+                print(serialized_content)
 
     @staticmethod
     def name() -> str:
-        return "LambdaSink"
+        return "StdoutSink"

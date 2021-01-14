@@ -1,6 +1,6 @@
 import os
 from aws_embedded_metrics.environment.lambda_environment import LambdaEnvironment
-from aws_embedded_metrics.sinks.lambda_sink import LambdaSink
+from aws_embedded_metrics.sinks.stdout_sink import StdoutSink
 import pytest
 from faker import Faker
 
@@ -65,4 +65,4 @@ def test_create_sink_creates_LambdaSink():
     result = env.get_sink()
 
     # assert
-    assert isinstance(result, LambdaSink)
+    assert isinstance(result, StdoutSink)

@@ -16,6 +16,7 @@ from aws_embedded_metrics import config
 from aws_embedded_metrics.environment import Environment
 from aws_embedded_metrics.environment.default_environment import DefaultEnvironment
 from aws_embedded_metrics.environment.lambda_environment import LambdaEnvironment
+from aws_embedded_metrics.environment.local_environment import LocalEnvironment
 from aws_embedded_metrics.environment.ec2_environment import EC2Environment
 from typing import Optional
 
@@ -24,6 +25,7 @@ log = logging.getLogger(__name__)
 lambda_environment = LambdaEnvironment()
 ec2_environment = EC2Environment()
 default_environment = DefaultEnvironment()
+local_environment = LocalEnvironment()
 environments = [lambda_environment, ec2_environment]
 Config = config.get_config()
 
@@ -45,6 +47,8 @@ async def resolve_environment() -> Environment:
             EnvironmentCache.environment = ec2_environment
         elif lower_configured_enviroment == "default":
             EnvironmentCache.environment = default_environment
+        elif lower_configured_enviroment == "local":
+            EnvironmentCache.environment = local_environment
         else:
             log.info("Failed to understand environment override: %s", Config.environment)
     if EnvironmentCache.environment is not None:

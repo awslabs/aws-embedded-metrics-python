@@ -14,6 +14,7 @@
 from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.environment import Environment
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
+from aws_embedded_metrics.sinks import Sink
 from aws_embedded_metrics.sinks.agent_sink import AgentSink
 from typing import Optional
 
@@ -22,7 +23,7 @@ Config = get_config()
 
 class DefaultEnvironment(Environment):
     def __init__(self) -> None:
-        self.sink: Optional[AgentSink] = None
+        self.sink: Optional[Sink] = None
 
     async def probe(self) -> bool:
         return True
@@ -39,7 +40,7 @@ class DefaultEnvironment(Environment):
     def configure_context(self, context: MetricsContext) -> None:
         pass
 
-    def get_sink(self) -> AgentSink:
+    def get_sink(self) -> Sink:
         if self.sink is None:
             self.sink = AgentSink(self.get_log_group_name(), Config.log_stream_name)
         return self.sink
