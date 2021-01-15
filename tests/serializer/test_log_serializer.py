@@ -130,6 +130,31 @@ def test_serialize_more_than_100_metrics():
             metric_index += 1
 
 
+def test_serialize_more_than_100_datapoints():
+    expected_value = fake.word()
+    expected_batches = 6
+    datapoints = 195
+    metrics = 3
+
+    context = get_context()
+    for index in range(metrics):
+        expected_key = f"Metric-{index}"
+        for _ in range(datapoints):
+            context.put_metric(expected_key, expected_value)
+
+    # act
+    results = serializer.serialize(context)
+
+    # assert
+    #assert len(results) == expected_batches
+
+    for batch_index in range(expected_batches):
+        expected_datapoint_count = datapoints % 100 if (batch_index == expected_batches - 1) else 100
+        result_json = results[batch_index]
+        result_obj = json.loads(result_json)
+        datapoint_count = sum([len(result_obj[f"Metric-{index}"]) for index in range(metrics)])
+        assert datapoint_count == expected_datapoint_count
+
 def test_serialize_with_multiple_metrics():
     # arrange
     metrics = 2
