@@ -1,6 +1,7 @@
 from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.serializers.log_serializer import LogSerializer
+from collections import Counter
 from faker import Faker
 import json
 
@@ -168,6 +169,33 @@ def test_serialize_more_than_100_datapoints():
         metric_name = f"Metric-{metrics}"
         expected_datapoint_count = extra_datapoints % 100 if (batch_index == expected_batches + expected_extra_batches - 1) else 100
         assert len(result_obj[metric_name]) == expected_datapoint_count
+
+
+def test_serialize_with_more_than_100_metrics_and_datapoints():
+    datapoints = 295
+    metrics = 295
+
+    context = get_context()
+    for index in range(metrics):
+        expected_key = f"Metric-{index}"
+        for i in range(datapoints):
+            context.put_metric(expected_key, i)
+
+    # act
+    results = serializer.serialize(context)
+
+    # assert
+    datapoints_count = Counter()
+    for batch in results:
+        result = json.loads(batch)
+        datapoints_count.update({
+            metric: len(result[metric])
+            for metric in result if metric != "_aws"
+        })
+
+    for count in datapoints_count.values():
+        assert count == datapoints
+    assert len(datapoints_count) == metrics
 
 
 def test_serialize_with_multiple_metrics():
