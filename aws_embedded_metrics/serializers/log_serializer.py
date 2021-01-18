@@ -15,7 +15,7 @@ from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.serializers import Serializer
 from aws_embedded_metrics.constants import (
-    MAX_DIMENSIONS, MAX_METRICS_PER_EVENT, MAX_DATAPOINTS_PER_EVENT
+    MAX_DIMENSIONS, MAX_METRICS_PER_EVENT, MAX_DATAPOINTS_PER_METRIC
 )
 import json
 from typing import Any, Dict, List
@@ -52,58 +52,39 @@ class LogSerializer(Serializer):
                 }
             return body
 
-        current_body: Dict[str, Any] = create_body()
+        current_body: Dict[str, Any] = {}
         event_batches: List[str] = []
         num_metrics_in_current_body = 0
-        num_datapoints_in_current_body = 0
-        last_datapoint_index = 0
+        missing_data = True
+        i = 0
 
-        for metric_name, metric in context.metrics.items():
+        while missing_data:
+            missing_data = False
+            current_body = create_body()
 
-            consumed_datapoints = 0
-
-            datapoint_count = len(metric.values) if len(metric.values) > 1 else 1
-            while consumed_datapoints < datapoint_count:
+            for metric_name, metric in context.metrics.items():
 
                 if len(metric.values) == 1:
                     current_body[metric_name] = metric.values[0]
-                    num_datapoints_in_current_body += 1
-                    consumed_datapoints += 1
-                elif (
-                        len(metric.values) + num_datapoints_in_current_body - last_datapoint_index >
-                        MAX_DATAPOINTS_PER_EVENT
-                ):
-                    current_body[metric_name] = metric.values[
-                        last_datapoint_index: last_datapoint_index + MAX_DATAPOINTS_PER_EVENT - num_datapoints_in_current_body
-                    ]
-                    last_datapoint_index = MAX_DATAPOINTS_PER_EVENT - num_datapoints_in_current_body
-                    consumed_datapoints += MAX_DATAPOINTS_PER_EVENT - num_datapoints_in_current_body
-                    num_datapoints_in_current_body = MAX_DATAPOINTS_PER_EVENT
-                elif (last_datapoint_index > 0):
-                    current_body[metric_name] = metric.values[last_datapoint_index:]
-                    last_datapoint_index = 0
-                    num_datapoints_in_current_body += len(current_body[metric_name])
-                    consumed_datapoints += len(current_body[metric_name])
                 else:
-                    current_body[metric_name] = metric.values
-                    num_datapoints_in_current_body += len(current_body[metric_name])
-                    consumed_datapoints += len(current_body[metric_name])
+                    start_index = i * MAX_DATAPOINTS_PER_METRIC
+                    end_index = (i + 1) * MAX_DATAPOINTS_PER_METRIC
+                    current_body[metric_name] = metric.values[start_index:end_index]
+                    if len(metric.values) > end_index:
+                        missing_data = True
 
                 if not config.disable_metric_extraction:
                     current_body["_aws"]["CloudWatchMetrics"][0]["Metrics"].append({"Name": metric_name, "Unit": metric.unit})
-
                 num_metrics_in_current_body += 1
 
-                if (
-                        num_metrics_in_current_body == MAX_METRICS_PER_EVENT or
-                        num_datapoints_in_current_body >= MAX_DATAPOINTS_PER_EVENT
-                ):
+                if (num_metrics_in_current_body == MAX_METRICS_PER_EVENT):
                     event_batches.append(json.dumps(current_body))
                     current_body = create_body()
                     num_metrics_in_current_body = 0
-                    num_datapoints_in_current_body = 0
 
-        if not event_batches or num_metrics_in_current_body > 0:
-            event_batches.append(json.dumps(current_body))
+            # iter over missing datapoints
+            i += 1
+            if not event_batches or num_metrics_in_current_body > 0:
+                event_batches.append(json.dumps(current_body))
 
         return event_batches
