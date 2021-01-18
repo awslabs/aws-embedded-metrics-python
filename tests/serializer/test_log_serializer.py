@@ -141,11 +141,17 @@ def test_serialize_more_than_100_datapoints():
         for i in range(datapoints):
             context.put_metric(expected_key, i)
 
+    # add one metric with more datapoints
+    expected_extra_batches = 2
+    extra_datapoints = 433
+    for i in range(extra_datapoints):
+        context.put_metric(f"Metric-{metrics}", i)
+
     # act
     results = serializer.serialize(context)
 
     # assert
-    assert len(results) == expected_batches
+    assert len(results) == expected_batches + expected_extra_batches
 
     for batch_index in range(expected_batches):
         result_json = results[batch_index]
@@ -154,6 +160,14 @@ def test_serialize_more_than_100_datapoints():
             metric_name = f"Metric-{index}"
             expected_datapoint_count = datapoints % 100 if (batch_index == expected_batches - 1) else 100
             assert len(result_obj[metric_name]) == expected_datapoint_count
+
+    # extra metric with more datapoints
+    for batch_index in range(expected_batches):
+        result_json = results[batch_index]
+        result_obj = json.loads(result_json)
+        metric_name = f"Metric-{metrics}"
+        expected_datapoint_count = extra_datapoints % 100 if (batch_index == expected_batches + expected_extra_batches - 1) else 100
+        assert len(result_obj[metric_name]) == expected_datapoint_count
 
 
 def test_serialize_with_multiple_metrics():
