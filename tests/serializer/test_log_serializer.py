@@ -172,19 +172,28 @@ def test_serialize_more_than_100_datapoints():
 
 
 def test_serialize_with_more_than_100_metrics_and_datapoints():
+    expected_batches = 11
     datapoints = 295
     metrics = 295
 
+    expected_results = {}
+    metric_results = {}
     context = get_context()
     for index in range(metrics):
         expected_key = f"Metric-{index}"
+        expected_results[expected_key] = []
+        metric_results[expected_key] = []
+
         for i in range(datapoints):
             context.put_metric(expected_key, i)
+            expected_results[expected_key].append(i)
 
     # act
     results = serializer.serialize(context)
 
     # assert
+    assert len(results) == expected_batches
+
     datapoints_count = Counter()
     for batch in results:
         result = json.loads(batch)
@@ -192,10 +201,14 @@ def test_serialize_with_more_than_100_metrics_and_datapoints():
             metric: len(result[metric])
             for metric in result if metric != "_aws"
         })
+        for metric in result:
+            if metric != "_aws":
+                metric_results[metric] += result[metric]
 
     for count in datapoints_count.values():
         assert count == datapoints
     assert len(datapoints_count) == metrics
+    assert metric_results == expected_results
 
 
 def test_serialize_with_multiple_metrics():
