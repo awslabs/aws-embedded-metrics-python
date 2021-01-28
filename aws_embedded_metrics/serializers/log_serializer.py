@@ -55,11 +55,15 @@ class LogSerializer(Serializer):
         current_body: Dict[str, Any] = {}
         event_batches: List[str] = []
         num_metrics_in_current_body = 0
-        missing_data = True
+
+        # Track if any given metric has data remaining to be serialized
+        remaining_data = True
+
+        # Track batch number to know where to slice metric data
         i = 0
 
-        while missing_data:
-            missing_data = False
+        while remaining_data:
+            remaining_data = False
             current_body = create_body()
 
             for metric_name, metric in context.metrics.items():
@@ -67,11 +71,16 @@ class LogSerializer(Serializer):
                 if len(metric.values) == 1:
                     current_body[metric_name] = metric.values[0]
                 else:
+                    # Slice metric data as each batch cannot contain more than
+                    # MAX_DATAPOINTS_PER_METRIC entries for a given metric
                     start_index = i * MAX_DATAPOINTS_PER_METRIC
                     end_index = (i + 1) * MAX_DATAPOINTS_PER_METRIC
                     current_body[metric_name] = metric.values[start_index:end_index]
+
+                    # Make sure to consume remaining values if we sliced before the end
+                    # of the metric value list
                     if len(metric.values) > end_index:
-                        missing_data = True
+                        remaining_data = True
 
                 if not config.disable_metric_extraction:
                     current_body["_aws"]["CloudWatchMetrics"][0]["Metrics"].append({"Name": metric_name, "Unit": metric.unit})
