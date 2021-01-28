@@ -1,6 +1,7 @@
 from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.serializers.log_serializer import LogSerializer
+from collections import Counter
 from faker import Faker
 import json
 
@@ -128,6 +129,86 @@ def test_serialize_more_than_100_metrics():
         for index in range(expected_metric_count):
             assert result_obj[f"Metric-{metric_index}"] == expected_value
             metric_index += 1
+
+
+def test_serialize_more_than_100_datapoints():
+    expected_batches = 3
+    datapoints = 295
+    metrics = 3
+
+    context = get_context()
+    for index in range(metrics):
+        expected_key = f"Metric-{index}"
+        for i in range(datapoints):
+            context.put_metric(expected_key, i)
+
+    # add one metric with more datapoints
+    expected_extra_batches = 2
+    extra_datapoints = 433
+    for i in range(extra_datapoints):
+        context.put_metric(f"Metric-{metrics}", i)
+
+    # act
+    results = serializer.serialize(context)
+
+    # assert
+    assert len(results) == expected_batches + expected_extra_batches
+
+    for batch_index in range(expected_batches):
+        result_json = results[batch_index]
+        result_obj = json.loads(result_json)
+        for index in range(metrics):
+            metric_name = f"Metric-{index}"
+            expected_datapoint_count = datapoints % 100 if (batch_index == expected_batches - 1) else 100
+            assert len(result_obj[metric_name]) == expected_datapoint_count
+
+    # extra metric with more datapoints
+    for batch_index in range(expected_batches):
+        result_json = results[batch_index]
+        result_obj = json.loads(result_json)
+        metric_name = f"Metric-{metrics}"
+        expected_datapoint_count = extra_datapoints % 100 if (batch_index == expected_batches + expected_extra_batches - 1) else 100
+        assert len(result_obj[metric_name]) == expected_datapoint_count
+
+
+def test_serialize_with_more_than_100_metrics_and_datapoints():
+    expected_batches = 11
+    datapoints = 295
+    metrics = 295
+
+    expected_results = {}
+    metric_results = {}
+    context = get_context()
+    for index in range(metrics):
+        expected_key = f"Metric-{index}"
+        expected_results[expected_key] = []
+        metric_results[expected_key] = []
+
+        for i in range(datapoints):
+            context.put_metric(expected_key, i)
+            expected_results[expected_key].append(i)
+
+    # act
+    results = serializer.serialize(context)
+
+    # assert
+    assert len(results) == expected_batches
+
+    datapoints_count = Counter()
+    for batch in results:
+        result = json.loads(batch)
+        datapoints_count.update({
+            metric: len(result[metric])
+            for metric in result if metric != "_aws"
+        })
+        for metric in result:
+            if metric != "_aws":
+                metric_results[metric] += result[metric]
+
+    for count in datapoints_count.values():
+        assert count == datapoints
+    assert len(datapoints_count) == metrics
+    assert metric_results == expected_results
 
 
 def test_serialize_with_multiple_metrics():
