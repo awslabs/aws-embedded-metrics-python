@@ -18,7 +18,7 @@
     "environment": [
       {
         "name": "AWS_EMF_AGENT_ENDPOINT",
-        "value": "tcp://cloudwatch-agent-python:25888"
+        "value": "tcp://127.0.0.1:25888"
       },
       {
         "name": "AWS_EMF_ENABLE_DEBUG_LOGGING",
@@ -26,7 +26,6 @@
       }
     ],
     "image": "863722843142.dkr.ecr.us-west-2.amazonaws.com/emf-python-canary",
-    "links": ["cloudwatch-agent-python"],
     "name": "emf-python-canary"
   },
   {
