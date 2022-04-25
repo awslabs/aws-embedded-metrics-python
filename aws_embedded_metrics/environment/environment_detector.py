@@ -50,14 +50,14 @@ async def resolve_environment() -> Environment:
         elif lower_configured_enviroment == "local":
             EnvironmentCache.environment = local_environment
         else:
-            log.info("Failed to understand environment override: %s", Config.environment)
+            log.error("Failed to understand environment override: %s", Config.environment)
     if EnvironmentCache.environment is not None:
         return EnvironmentCache.environment
 
     for env_under_test in environments:
         is_environment = False
         try:
-            log.info("Testing environment: %s", env_under_test.__class__.__name__)
+            log.debug("Testing environment: %s", env_under_test.__class__.__name__)
             is_environment = await env_under_test.probe()
         except Exception as e:
             log.error(
@@ -66,10 +66,10 @@ async def resolve_environment() -> Environment:
             pass
 
         if is_environment:
-            log.info("Detected environment: %s", env_under_test.__class__.__name__)
+            log.debug("Detected environment: %s", env_under_test.__class__.__name__)
             EnvironmentCache.environment = env_under_test
             return env_under_test
 
-    log.info("No environment was detected. Using default.")
+    log.debug("No environment was detected. Using default.")
     EnvironmentCache.environment = default_environment
     return EnvironmentCache.environment
