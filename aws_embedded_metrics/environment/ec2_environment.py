@@ -34,20 +34,23 @@ DEFAULT_EC2_METADATA_ENDPOINT = (
 )
 METADATA_REQUEST_HEADER_KEY = "X-aws-ec2-metadata-token"
 
+
 async def fetchJSON(
     session: aiohttp.ClientSession, method: str, url: str, headers: Dict[str, str],
-):
+) -> Dict[str, Any]:
     async with session.request(method, url, timeout=2, headers=headers) as response:
         # content_type=None prevents validation of the HTTP Content-Type header
         # The EC2 metadata endpoint uses text/plain instead of application/json
         # https://github.com/aio-libs/aiohttp/blob/7f777333a4ec0043ddf2e8d67146a626089773d9/aiohttp/web_request.py#L582-L585
         return cast(Dict[str, Any], await response.json(content_type=None))
 
+
 async def fetchString(
     session: aiohttp.ClientSession, method: str, url: str, headers: Dict[str, str]
 ) -> str:
     async with session.request(method, url, timeout=2, headers=headers) as response:
         return await response.text()
+
 
 class EC2Environment(Environment):
     def __init__(self) -> None:
