@@ -24,19 +24,32 @@ import logging
 log = logging.getLogger(__name__)
 Config = get_config()
 
+# Documentation for configuring instance metadata can be found here:
+# https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html
+TOKEN_ENDPOINT = "http://169.254.169.254/latest/api/token"
+TOKEN_REQUEST_HEADER_KEY = "X-aws-ec2-metadata-token-ttl-seconds"
+TOKEN_REQUEST_HEADER_VALUE = "21600"
 DEFAULT_EC2_METADATA_ENDPOINT = (
     "http://169.254.169.254/latest/dynamic/instance-identity/document"
 )
+METADATA_REQUEST_HEADER_KEY = "X-aws-ec2-metadata-token"
 
 
-async def fetch(  # type: ignore
-    session: aiohttp.ClientSession, url: str
+async def fetchJSON(
+    session: aiohttp.ClientSession, method: str, url: str, headers: Dict[str, str],
 ) -> Dict[str, Any]:
-    async with session.get(url, timeout=2) as response:
+    async with session.request(method, url, timeout=2, headers=headers) as response:
         # content_type=None prevents validation of the HTTP Content-Type header
         # The EC2 metadata endpoint uses text/plain instead of application/json
         # https://github.com/aio-libs/aiohttp/blob/7f777333a4ec0043ddf2e8d67146a626089773d9/aiohttp/web_request.py#L582-L585
         return cast(Dict[str, Any], await response.json(content_type=None))
+
+
+async def fetchString(
+    session: aiohttp.ClientSession, method: str, url: str, headers: Dict[str, str]
+) -> str:
+    async with session.request(method, url, timeout=2, headers=headers) as response:
+        return await response.text()
 
 
 class EC2Environment(Environment):
@@ -48,10 +61,22 @@ class EC2Environment(Environment):
             metadata_endpoint = (
                 Config.ec2_metadata_endpoint or DEFAULT_EC2_METADATA_ENDPOINT
             )
+            token_header = {TOKEN_REQUEST_HEADER_KEY: TOKEN_REQUEST_HEADER_VALUE}
+            log.info("Fetching token for EC2 metadata request from: %s", TOKEN_ENDPOINT)
+            try:
+                token = await fetchString(session, "PUT", TOKEN_ENDPOINT, token_header)
+                log.debug("Received token for request to EC2 metadata endpoint.")
+            except Exception:
+                log.info(
+                    "Failed to fetch token for EC2 metadata request from %s", TOKEN_ENDPOINT
+                )
+                return False
+
             log.info("Fetching EC2 metadata from: %s", metadata_endpoint)
             try:
-                response_json = await fetch(session, metadata_endpoint)
-                log.debug("Received response from EC2 metdata endpoint.")
+                metadata_request_header = {METADATA_REQUEST_HEADER_KEY: token}
+                response_json = await fetchJSON(session, "GET", metadata_endpoint, metadata_request_header)
+                log.debug("Received response from EC2 metadata endpoint.")
                 self.metadata = response_json
                 return True
             except Exception:

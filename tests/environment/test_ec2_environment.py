@@ -16,7 +16,7 @@ Config = get_config()
 @pytest.mark.asyncio
 async def test_probe_returns_true_if_fetch_succeeds(aresponses):
     # arrange
-    configure_response(aresponses, "{}")
+    configure_response(aresponses, fake.pystr(), "{}")
     env = EC2Environment()
 
     # act
@@ -55,7 +55,7 @@ def test_get_name_returns_configured_name():
 async def test_get_type_returns_ec2_instance(aresponses):
     # arrange
     expected = "AWS::EC2::Instance"
-    configure_response(aresponses, "{}")
+    configure_response(aresponses, fake.pystr(), "{}")
     env = EC2Environment()
 
     # environment MUST be detected before we can access the metadata
@@ -79,6 +79,7 @@ async def test_configure_context_adds_ec2_metadata_props(aresponses):
 
     configure_response(
         aresponses,
+        fake.pystr(),
         json.dumps(
             {
                 "imageId": image_id,
@@ -109,12 +110,20 @@ async def test_configure_context_adds_ec2_metadata_props(aresponses):
 # Test helper methods
 
 
-def configure_response(aresponses, json):
+def configure_response(aresponses, token, json):
+    aresponses.add(
+        "169.254.169.254",
+        "/latest/api/token",
+        "put",
+        aresponses.Response(text=token, headers={"X-aws-ec2-metadata-token-ttl-seconds": "21600"}),
+    )
     aresponses.add(
         "169.254.169.254",
         "/latest/dynamic/instance-identity/document",
         "get",
         # the ec2-metdata endpoint does not actually set the correct
         # content-type header, it will instead use text/plain
-        aresponses.Response(text=json, content_type="text/plain"),
+        aresponses.Response(text=json,
+                            content_type="text/plain",
+                            headers={"X-aws-ec2-metadata-token": token})
     )
