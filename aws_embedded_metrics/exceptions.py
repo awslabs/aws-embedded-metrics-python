@@ -1,4 +1,4 @@
-# Copyright 2019 Amazon.com, Inc. or its affiliates.
+# Copyright 2022 Amazon.com, Inc. or its affiliates.
 # Licensed under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DEFAULT_NAMESPACE = "aws-embedded-metrics"
-MAX_DIMENSIONS = 30
-MAX_METRICS_PER_EVENT = 100
-MAX_DATAPOINTS_PER_METRIC = 100
+class DimensionsExceededError(Exception):
+    def __init__(self, message: str) -> None:
+        # Call the base class constructor with the parameters it needs
+        super().__init__(message)

@@ -30,37 +30,6 @@ def test_serialize_dimensions():
     assert_json_equality(result_json, expected)
 
 
-def test_cannot_serialize_more_than_9_dimensions():
-    # arrange
-    dimensions = {}
-    dimension_pointers = []
-    allowed_dimensions = 9
-    dimensions_to_add = 15
-
-    for i in range(0, dimensions_to_add):
-        print(i)
-        expected_key = f"{i}"
-        expected_value = fake.word()
-        dimensions[expected_key] = expected_value
-        dimension_pointers.append(expected_key)
-
-    expected_dimensions_pointers = dimension_pointers[0:allowed_dimensions]
-
-    expected = {**get_empty_payload(), **dimensions}
-    expected["_aws"]["CloudWatchMetrics"][0]["Dimensions"].append(
-        expected_dimensions_pointers
-    )
-
-    context = get_context()
-    context.put_dimensions(dimensions)
-
-    # act
-    result_json = serializer.serialize(context)[0]
-
-    # assert
-    assert_json_equality(result_json, expected)
-
-
 def test_serialize_properties():
     # arrange
     expected_key = fake.word()
