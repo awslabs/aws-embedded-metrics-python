@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-class DimensionsExceededError(Exception):
+class DimensionSetExceededError(Exception):
     def __init__(self, message: str) -> None:
         # Call the base class constructor with the parameters it needs
         super().__init__(message)

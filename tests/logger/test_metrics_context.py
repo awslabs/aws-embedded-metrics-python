@@ -1,7 +1,7 @@
 from aws_embedded_metrics import config
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.constants import DEFAULT_NAMESPACE
-from aws_embedded_metrics.exceptions import DimensionsExceededError
+from aws_embedded_metrics.exceptions import DimensionSetExceededError
 from importlib import reload
 from faker import Faker
 import pytest
@@ -44,14 +44,14 @@ def test_put_dimension_adds_to_dimensions():
     # arrange
     context = MetricsContext()
 
-    dimension_key = fake.word()
-    dimension_value = fake.word()
+    dimensions_to_add = 30
+    dimension_set = generate_dimension_set(dimensions_to_add)
 
     # act
-    context.put_dimensions({dimension_key: dimension_value})
+    context.put_dimensions(dimension_set)
 
     # assert
-    assert context.dimensions == [{dimension_key: dimension_value}]
+    assert context.dimensions == [dimension_set]
 
 
 def test_get_dimensions_returns_only_custom_dimensions_if_no_default_dimensions_not_set():
@@ -273,7 +273,7 @@ def test_cannot_set_more_than_30_dimensions():
     dimensions_to_add = 32
     dimension_set = generate_dimension_set(dimensions_to_add)
 
-    with pytest.raises(DimensionsExceededError):
+    with pytest.raises(DimensionSetExceededError):
         context.set_dimensions([dimension_set])
 
 
@@ -282,8 +282,11 @@ def test_cannot_put_more_than_30_dimensions():
     dimensions_to_add = 32
     dimension_set = generate_dimension_set(dimensions_to_add)
 
-    with pytest.raises(DimensionsExceededError):
+    with pytest.raises(DimensionSetExceededError):
         context.put_dimensions(dimension_set)
+
+
+# Test utility method
 
 
 def generate_dimension_set(dimensions_to_add):

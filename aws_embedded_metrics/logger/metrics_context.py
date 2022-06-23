@@ -14,8 +14,8 @@
 
 from aws_embedded_metrics import constants, utils
 from aws_embedded_metrics.config import get_config
-from aws_embedded_metrics.constants import MAX_DIMENSIONS
-from aws_embedded_metrics.exceptions import DimensionsExceededError
+from aws_embedded_metrics.constants import MAX_DIMENSION_SET_SIZE
+from aws_embedded_metrics.exceptions import DimensionSetExceededError
 from aws_embedded_metrics.logger.metric import Metric
 from typing import List, Dict, Any
 
@@ -68,8 +68,9 @@ class MetricsContext(object):
             # TODO add ability to define failure strategy
             return
 
-        if len(dimensions) > MAX_DIMENSIONS:
-            raise DimensionsExceededError(f"Maximum number of dimensions allowed are {MAX_DIMENSIONS}")
+        if len(dimensions) > MAX_DIMENSION_SET_SIZE:
+            raise DimensionSetExceededError(
+                f"Maximum number of dimensions per dimension set allowed are {MAX_DIMENSION_SET_SIZE}")
 
         self.dimensions.append(dimensions)
 
@@ -85,8 +86,9 @@ class MetricsContext(object):
         self.should_use_default_dimensions = False
 
         for dimensionSet in dimensionSets:
-            if len(dimensionSet) > MAX_DIMENSIONS:
-                raise DimensionsExceededError(f"Maximum number of dimensions allowed are {MAX_DIMENSIONS}")
+            if len(dimensionSet) > MAX_DIMENSION_SET_SIZE:
+                raise DimensionSetExceededError(
+                    f"Maximum number of dimensions per dimension set allowed are {MAX_DIMENSION_SET_SIZE}")
 
         self.dimensions = dimensionSets
 

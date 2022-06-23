@@ -1,9 +1,11 @@
 from aws_embedded_metrics.config import get_config
+from aws_embedded_metrics.exceptions import DimensionSetExceededError
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.serializers.log_serializer import LogSerializer
 from collections import Counter
 from faker import Faker
 import json
+import pytest
 
 fake = Faker()
 
@@ -46,6 +48,25 @@ def test_serialize_properties():
 
     # assert
     assert_json_equality(result_json, expected)
+
+
+def test_default_and_custom_dimensions_combined_limit_exceeded():
+    # While serializing default dimensions are added to the custom dimension set,
+    # and the combined size of the dimension set should not be more than 30
+    dimensions = {}
+    default_dimension_key = fake.word()
+    default_dimension_value = fake.word()
+    custom_dimensions_to_add = 30
+
+    for i in range(0, custom_dimensions_to_add):
+        dimensions[f"{i}"] = fake.word()
+
+    context = get_context()
+    context.set_default_dimensions({default_dimension_key: default_dimension_value})
+    context.put_dimensions(dimensions)
+
+    with pytest.raises(DimensionSetExceededError):
+        serializer.serialize(context)
 
 
 def test_serialize_metrics():

@@ -12,6 +12,6 @@
 # limitations under the License.
 
 DEFAULT_NAMESPACE = "aws-embedded-metrics"
-MAX_DIMENSIONS = 30
+MAX_DIMENSION_SET_SIZE = 30
 MAX_METRICS_PER_EVENT = 100
 MAX_DATAPOINTS_PER_METRIC = 100
