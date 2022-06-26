@@ -100,7 +100,7 @@ using `setProperty` instead.
 
 Requirements:
 
-- Length 1-255 characters
+- Length 1-250 characters
 - ASCII characters only
 
 Examples:
