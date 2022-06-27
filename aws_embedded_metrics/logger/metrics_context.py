@@ -57,6 +57,15 @@ class MetricsContext(object):
         else:
             self.metrics[key] = Metric(value, unit)
 
+    @staticmethod
+    def validate_dimension_set(dimensions):
+        """
+        Validates dimension set length is not more than MAX_DIMENSION_SET_SIZE
+        """
+        if len(dimensions) > MAX_DIMENSION_SET_SIZE:
+            raise DimensionSetExceededError(
+                f"Maximum number of dimensions per dimension set allowed are {MAX_DIMENSION_SET_SIZE}")
+
     def put_dimensions(self, dimensions: Dict[str, str]) -> None:
         """
         Adds dimensions to the context.
@@ -68,9 +77,7 @@ class MetricsContext(object):
             # TODO add ability to define failure strategy
             return
 
-        if len(dimensions) > MAX_DIMENSION_SET_SIZE:
-            raise DimensionSetExceededError(
-                f"Maximum number of dimensions per dimension set allowed are {MAX_DIMENSION_SET_SIZE}")
+        self.validate_dimension_set(dimensions)
 
         self.dimensions.append(dimensions)
 
@@ -86,9 +93,7 @@ class MetricsContext(object):
         self.should_use_default_dimensions = False
 
         for dimensionSet in dimensionSets:
-            if len(dimensionSet) > MAX_DIMENSION_SET_SIZE:
-                raise DimensionSetExceededError(
-                    f"Maximum number of dimensions per dimension set allowed are {MAX_DIMENSION_SET_SIZE}")
+            self.validate_dimension_set(dimensionSet)
 
         self.dimensions = dimensionSets
 
