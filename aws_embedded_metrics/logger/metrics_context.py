@@ -58,7 +58,7 @@ class MetricsContext(object):
             self.metrics[key] = Metric(value, unit)
 
     @staticmethod
-    def validate_dimension_set(dimensions):
+    def validate_dimension_set(dimensions: Dict[str, str]) -> None:
         """
         Validates dimension set length is not more than MAX_DIMENSION_SET_SIZE
         """
