@@ -15,8 +15,9 @@ from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.serializers import Serializer
 from aws_embedded_metrics.constants import (
-    MAX_DIMENSIONS, MAX_METRICS_PER_EVENT, MAX_DATAPOINTS_PER_METRIC
+    MAX_DIMENSION_SET_SIZE, MAX_METRICS_PER_EVENT, MAX_DATAPOINTS_PER_METRIC
 )
+from aws_embedded_metrics.exceptions import DimensionSetExceededError
 import json
 from typing import Any, Dict, List
 
@@ -31,7 +32,11 @@ class LogSerializer(Serializer):
 
         for dimension_set in context.get_dimensions():
             keys = list(dimension_set.keys())
-            dimension_keys.append(keys[0:MAX_DIMENSIONS])
+            if len(keys) > MAX_DIMENSION_SET_SIZE:
+                err_msg = (f"Maximum number of dimensions per dimension set allowed are {MAX_DIMENSION_SET_SIZE}. "
+                           f"Account for default dimensions if not using set_dimensions.")
+                raise DimensionSetExceededError(err_msg)
+            dimension_keys.append(keys)
             dimensions_properties = {**dimensions_properties, **dimension_set}
 
         def create_body() -> Dict[str, Any]:
