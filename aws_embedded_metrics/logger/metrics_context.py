@@ -58,30 +58,38 @@ class MetricsContext(object):
             self.metrics[key] = Metric(value, unit)
 
     @staticmethod
-    def validate_dimension_set(dimensions: Dict[str, str]) -> None:
+    def validate_dimension_set(dimension_set: Dict[str, str]) -> None:
         """
         Validates dimension set length is not more than MAX_DIMENSION_SET_SIZE
         """
-        if len(dimensions) > MAX_DIMENSION_SET_SIZE:
+        if len(dimension_set) > MAX_DIMENSION_SET_SIZE:
             raise DimensionSetExceededError(
                 f"Maximum number of dimensions per dimension set allowed are {MAX_DIMENSION_SET_SIZE}")
 
-    def put_dimensions(self, dimensions: Dict[str, str]) -> None:
+    @staticmethod
+    def stringify_dimension_value(dimension_set: Dict[str, str]) -> Dict[str, str]:
+        """
+        Stringifies numerical values and strips non-ascii characters from dimension values.
+        """
+        return {k: str(v).encode("ascii", "ignore").decode("ascii") for k, v in dimension_set.items()}
+
+    def put_dimensions(self, dimension_set: Dict[str, str]) -> None:
         """
         Adds dimensions to the context.
         ```
         context.put_dimensions({ "k1": "v1", "k2": "v2" })
         ```
         """
-        if dimensions is None:
+        if dimension_set is None:
             # TODO add ability to define failure strategy
             return
 
-        self.validate_dimension_set(dimensions)
+        dimension_set = self.stringify_dimension_value(dimension_set)
+        self.validate_dimension_set(dimension_set)
 
-        self.dimensions.append(dimensions)
+        self.dimensions.append(dimension_set)
 
-    def set_dimensions(self, dimensionSets: List[Dict[str, str]]) -> None:
+    def set_dimensions(self, dimension_sets: List[Dict[str, str]]) -> None:
         """
         Overwrite all dimensions.
         ```
@@ -92,10 +100,11 @@ class MetricsContext(object):
         """
         self.should_use_default_dimensions = False
 
-        for dimensionSet in dimensionSets:
-            self.validate_dimension_set(dimensionSet)
+        for dimension_set in dimension_sets:
+            dimension_set = self.stringify_dimension_value(dimension_set)
+            self.validate_dimension_set(dimension_set)
 
-        self.dimensions = dimensionSets
+        self.dimensions = dimension_sets
 
     def set_default_dimensions(self, default_dimensions: Dict) -> None:
         """

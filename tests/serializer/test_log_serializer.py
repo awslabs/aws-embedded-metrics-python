@@ -31,6 +31,53 @@ def test_serialize_dimensions():
     # assert
     assert_json_equality(result_json, expected)
 
+def test_serialize_dimensions_with_numeric_value():
+    # arrange
+    expected_key = fake.word()
+    value = fake.random.randrange(0, 100)
+    expected_value = str(value)
+
+    dimension = {}
+    dimension[expected_key] = value
+
+    expected_dimension = {}
+    expected_dimension[expected_key] = expected_value
+
+    expected = {**get_empty_payload(), **expected_dimension}
+    expected["_aws"]["CloudWatchMetrics"][0]["Dimensions"].append([expected_key])
+
+    context = get_context()
+    context.put_dimensions(dimension)
+
+    # act
+    result_json = serializer.serialize(context)[0]
+
+    # assert
+    assert_json_equality(result_json, expected)
+
+def test_serialize_dimenions_with_non_ascii_values():
+    # arrange
+    expected_key = fake.word()
+    value = "asciié🤔"
+    expected_value = "ascii"
+
+    dimension = {}
+    dimension[expected_key] = value
+
+    expected_dimension = {}
+    expected_dimension[expected_key] = expected_value
+
+    expected = {**get_empty_payload(), **expected_dimension}
+    expected["_aws"]["CloudWatchMetrics"][0]["Dimensions"].append([expected_key])
+
+    context = get_context()
+    context.put_dimensions(dimension)
+
+    # act
+    result_json = serializer.serialize(context)[0]
+
+    # assert
+    assert_json_equality(result_json, expected)
 
 def test_serialize_properties():
     # arrange
