@@ -31,6 +31,7 @@ def test_serialize_dimensions():
     # assert
     assert_json_equality(result_json, expected)
 
+
 def test_serialize_dimensions_with_numeric_value():
     # arrange
     expected_key = fake.word()
@@ -55,6 +56,7 @@ def test_serialize_dimensions_with_numeric_value():
     # assert
     assert_json_equality(result_json, expected)
 
+
 def test_serialize_dimenions_with_non_ascii_values():
     # arrange
     expected_key = fake.word()
@@ -78,6 +80,7 @@ def test_serialize_dimenions_with_non_ascii_values():
 
     # assert
     assert_json_equality(result_json, expected)
+
 
 def test_serialize_properties():
     # arrange
