@@ -66,13 +66,6 @@ class MetricsContext(object):
             raise DimensionSetExceededError(
                 f"Maximum number of dimensions per dimension set allowed are {MAX_DIMENSION_SET_SIZE}")
 
-    @staticmethod
-    def stringify_dimension_value(dimension_set: Dict[str, str]) -> Dict[str, str]:
-        """
-        Stringifies numerical values and strips non-ascii characters from dimension values.
-        """
-        return {k: str(v).encode("ascii", "ignore").decode("ascii") for k, v in dimension_set.items()}
-
     def put_dimensions(self, dimension_set: Dict[str, str]) -> None:
         """
         Adds dimensions to the context.
@@ -84,7 +77,6 @@ class MetricsContext(object):
             # TODO add ability to define failure strategy
             return
 
-        dimension_set = self.stringify_dimension_value(dimension_set)
         self.validate_dimension_set(dimension_set)
 
         self.dimensions.append(dimension_set)
@@ -101,7 +93,6 @@ class MetricsContext(object):
         self.should_use_default_dimensions = False
 
         for dimension_set in dimension_sets:
-            dimension_set = self.stringify_dimension_value(dimension_set)
             self.validate_dimension_set(dimension_set)
 
         self.dimensions = dimension_sets
