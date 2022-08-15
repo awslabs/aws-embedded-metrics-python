@@ -17,7 +17,7 @@ from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.constants import MAX_DIMENSION_SET_SIZE
 from aws_embedded_metrics.exceptions import DimensionSetExceededError
 from aws_embedded_metrics.logger.metric import Metric
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Set
 
 
 class MetricsContext(object):
@@ -78,6 +78,12 @@ class MetricsContext(object):
             return
 
         self.validate_dimension_set(dimensions)
+
+        # Duplicate dimension sets are removed before being added to the end of the collection.
+        # This ensures only latest dimension value is used as a target member on the root EMF node.
+        # This operation is O(n^2), but acceptable given sets are capped at 30 dimensions
+        incoming_keys: Set = set(dimensions.keys())
+        self.dimensions = list(filter(lambda dim: (set(dim.keys()) != incoming_keys), self.dimensions))
 
         self.dimensions.append(dimensions)
 
