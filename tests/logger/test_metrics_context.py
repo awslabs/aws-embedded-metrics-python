@@ -70,7 +70,7 @@ def test_put_dimensions_accept_multiple_unique_dimensions():
     assert context.get_dimensions()[1] == dimension2
 
 
-def test_put_dimension_prevent_duplicate_dimensions():
+def test_put_dimensions_prevent_duplicate_dimensions():
     # arrange
     context = MetricsContext()
     pair1 = [fake.word(), fake.word()]
@@ -95,7 +95,7 @@ def test_put_dimension_prevent_duplicate_dimensions():
     assert context.get_dimensions()[2] == dimension3
 
 
-def test_put_dimension_sort_duplicate_dimensions():
+def test_put_dimensions_sort_duplicate_dimensions():
     # arrange
     context = MetricsContext()
     key1 = fake.word()
@@ -123,6 +123,27 @@ def test_put_dimension_sort_duplicate_dimensions():
     assert context.get_dimensions()[0] == dimension3
     assert context.get_dimensions()[1] == dimension4
     assert context.get_dimensions()[2] == dimension6
+
+
+def test_put_dimensions_with_set_dimensions():
+    # arrange
+    context = MetricsContext()
+    pair1 = [fake.word(), fake.word()]
+    pair2 = [fake.word(), fake.word()]
+
+    dimension1 = {pair1[0]: pair1[1]}
+    dimension2 = {pair2[0]: pair2[1]}
+    dimension3 = {pair1[0]: pair1[1], pair2[0]: pair2[1]}
+
+    # act
+    context.put_dimensions(dimension1)
+    context.set_dimensions([dimension2])
+    context.put_dimensions(dimension3)
+
+    # assert
+    assert len(context.get_dimensions()) == 2
+    assert context.get_dimensions()[0] == dimension2
+    assert context.get_dimensions()[1] == dimension3
 
 
 def test_get_dimensions_returns_only_custom_dimensions_if_no_default_dimensions_not_set():
