@@ -128,22 +128,31 @@ def test_put_dimensions_sort_duplicate_dimensions():
 def test_put_dimensions_with_set_dimensions():
     # arrange
     context = MetricsContext()
-    pair1 = [fake.word(), fake.word()]
-    pair2 = [fake.word(), fake.word()]
+    key1 = fake.word()
+    key2 = fake.word()
+    val1 = fake.word()
+    val2 = fake.word()
 
-    dimension1 = {pair1[0]: pair1[1]}
-    dimension2 = {pair2[0]: pair2[1]}
-    dimension3 = {pair1[0]: pair1[1], pair2[0]: pair2[1]}
+    dimension1 = {key1: val1}
+    dimension2 = {key2: val2}
+    dimension3 = {key1: val2}
+    dimension4 = {key2: val1}
+    dimension5 = {key1: val1, key2: val2}
+    dimension6 = {key1: val2, key2: val1}
 
     # act
     context.put_dimensions(dimension1)
-    context.set_dimensions([dimension2])
-    context.put_dimensions(dimension3)
+    context.put_dimensions(dimension2)
+    context.set_dimensions([dimension3])
+    context.put_dimensions(dimension4)
+    context.put_dimensions(dimension5)
+    context.put_dimensions(dimension6)
 
     # assert
-    assert len(context.get_dimensions()) == 2
-    assert context.get_dimensions()[0] == dimension2
-    assert context.get_dimensions()[1] == dimension3
+    assert len(context.get_dimensions()) == 3
+    assert context.get_dimensions()[0] == dimension3
+    assert context.get_dimensions()[1] == dimension4
+    assert context.get_dimensions()[2] == dimension6
 
 
 def test_get_dimensions_returns_only_custom_dimensions_if_no_default_dimensions_not_set():
