@@ -58,11 +58,11 @@ class MetricsContext(object):
             self.metrics[key] = Metric(value, unit)
 
     @staticmethod
-    def validate_dimension_set(dimension_set: Dict[str, str]) -> None:
+    def validate_dimension_set(dimensions: Dict[str, str]) -> None:
         """
         Validates dimension set length is not more than MAX_DIMENSION_SET_SIZE
         """
-        if len(dimension_set) > MAX_DIMENSION_SET_SIZE:
+        if len(dimensions) > MAX_DIMENSION_SET_SIZE:
             raise DimensionSetExceededError(
                 f"Maximum number of dimensions per dimension set allowed are {MAX_DIMENSION_SET_SIZE}")
 
@@ -87,7 +87,7 @@ class MetricsContext(object):
 
         self.dimensions.append(dimension_set)
 
-    def set_dimensions(self, dimension_sets: List[Dict[str, str]]) -> None:
+    def set_dimensions(self, dimensionSets: List[Dict[str, str]]) -> None:
         """
         Overwrite all dimensions.
         ```
@@ -98,10 +98,10 @@ class MetricsContext(object):
         """
         self.should_use_default_dimensions = False
 
-        for dimension_set in dimension_sets:
-            self.validate_dimension_set(dimension_set)
+        for dimensionSet in dimensionSets:
+            self.validate_dimension_set(dimensionSet)
 
-        self.dimensions = dimension_sets
+        self.dimensions = dimensionSets
 
     def set_default_dimensions(self, default_dimensions: Dict) -> None:
         """
