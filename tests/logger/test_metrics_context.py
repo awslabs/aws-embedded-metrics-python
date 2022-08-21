@@ -95,7 +95,7 @@ def test_put_dimensions_prevent_duplicate_dimensions():
     assert context.get_dimensions()[2] == dimension3
 
 
-def test_put_dimensions_sort_duplicate_dimensions():
+def test_put_dimensions_use_most_recent_dimension_value():
     # arrange
     context = MetricsContext()
     key1 = fake.word()
