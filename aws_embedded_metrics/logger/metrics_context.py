@@ -17,7 +17,7 @@ from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.constants import MAX_DIMENSION_SET_SIZE
 from aws_embedded_metrics.exceptions import DimensionSetExceededError
 from aws_embedded_metrics.logger.metric import Metric
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Set
 
 
 class MetricsContext(object):
@@ -58,11 +58,11 @@ class MetricsContext(object):
             self.metrics[key] = Metric(value, unit)
 
     @staticmethod
-    def validate_dimension_set(dimension_set: Dict[str, str]) -> None:
+    def validate_dimension_set(dimensions: Dict[str, str]) -> None:
         """
         Validates dimension set length is not more than MAX_DIMENSION_SET_SIZE
         """
-        if len(dimension_set) > MAX_DIMENSION_SET_SIZE:
+        if len(dimensions) > MAX_DIMENSION_SET_SIZE:
             raise DimensionSetExceededError(
                 f"Maximum number of dimensions per dimension set allowed are {MAX_DIMENSION_SET_SIZE}")
 
@@ -79,6 +79,12 @@ class MetricsContext(object):
 
         self.validate_dimension_set(dimension_set)
 
+        # Duplicate dimension sets are removed before being added to the end of the collection.
+        # This ensures only latest dimension value is used as a target member on the root EMF node.
+        # This operation is O(n^2), but acceptable given sets are capped at 30 dimensions
+        incoming_keys: Set = set(dimension_set.keys())
+        self.dimensions = list(filter(lambda dim: (set(dim.keys()) != incoming_keys), self.dimensions))
+
         self.dimensions.append(dimension_set)
 
     def set_dimensions(self, dimension_sets: List[Dict[str, str]], use_default: bool = False) -> None:
@@ -92,8 +98,8 @@ class MetricsContext(object):
         """
         self.should_use_default_dimensions = use_default
 
-        for dimension_set in dimension_sets:
-            self.validate_dimension_set(dimension_set)
+        for dimensionSet in dimension_sets:
+            self.validate_dimension_set(dimensionSet)
 
         self.dimensions = dimension_sets
 
