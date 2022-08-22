@@ -57,7 +57,7 @@ def test_get_log_group_name_returns_function_name():
     assert result == expected_name
 
 
-def test_create_sink_creates_LambdaSink():
+def test_create_sink_creates_lambda_sink():
     # arrange
     env = LambdaEnvironment()
 

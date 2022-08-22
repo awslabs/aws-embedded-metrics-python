@@ -87,7 +87,7 @@ class MetricsContext(object):
 
         self.dimensions.append(dimension_set)
 
-    def set_dimensions(self, dimensionSets: List[Dict[str, str]]) -> None:
+    def set_dimensions(self, dimension_sets: List[Dict[str, str]]) -> None:
         """
         Overwrite all dimensions.
         ```
@@ -98,10 +98,10 @@ class MetricsContext(object):
         """
         self.should_use_default_dimensions = False
 
-        for dimensionSet in dimensionSets:
-            self.validate_dimension_set(dimensionSet)
+        for dimension_set in dimension_sets:
+            self.validate_dimension_set(dimension_set)
 
-        self.dimensions = dimensionSets
+        self.dimensions = dimension_sets
 
     def set_default_dimensions(self, default_dimensions: Dict) -> None:
         """
