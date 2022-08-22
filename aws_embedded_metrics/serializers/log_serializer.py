@@ -31,10 +31,6 @@ class LogSerializer(Serializer):
         dimensions_properties: Dict[str, str] = {}
 
         for dimension_set in context.get_dimensions():
-
-            # Stringify numerical values and strip non-ascii characters from dimension set values
-            dimension_set = {k: str(v).encode('ascii', 'ignore').decode('ascii') for k, v in dimension_set.items()}
-
             keys = list(dimension_set.keys())
             if len(keys) > MAX_DIMENSION_SET_SIZE:
                 err_msg = (f"Maximum number of dimensions per dimension set allowed are {MAX_DIMENSION_SET_SIZE}. "

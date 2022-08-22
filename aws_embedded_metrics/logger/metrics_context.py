@@ -58,28 +58,28 @@ class MetricsContext(object):
             self.metrics[key] = Metric(value, unit)
 
     @staticmethod
-    def validate_dimension_set(dimension_set: Dict[str, str]) -> None:
+    def validate_dimension_set(dimensions: Dict[str, str]) -> None:
         """
         Validates dimension set length is not more than MAX_DIMENSION_SET_SIZE
         """
-        if len(dimension_set) > MAX_DIMENSION_SET_SIZE:
+        if len(dimensions) > MAX_DIMENSION_SET_SIZE:
             raise DimensionSetExceededError(
                 f"Maximum number of dimensions per dimension set allowed are {MAX_DIMENSION_SET_SIZE}")
 
-    def put_dimensions(self, dimension_set: Dict[str, str]) -> None:
+    def put_dimensions(self, dimensions: Dict[str, str]) -> None:
         """
         Adds dimensions to the context.
         ```
         context.put_dimensions({ "k1": "v1", "k2": "v2" })
         ```
         """
-        if dimension_set is None:
+        if dimensions is None:
             # TODO add ability to define failure strategy
             return
 
-        self.validate_dimension_set(dimension_set)
+        self.validate_dimension_set(dimensions)
 
-        self.dimensions.append(dimension_set)
+        self.dimensions.append(dimensions)
 
     def set_dimensions(self, dimension_sets: List[Dict[str, str]], use_default: bool = False) -> None:
         """
@@ -92,10 +92,10 @@ class MetricsContext(object):
         """
         self.should_use_default_dimensions = use_default
 
-        for dimension_set in dimension_sets:
-            self.validate_dimension_set(dimension_set)
+        for dimensionSet in dimensionSets:
+            self.validate_dimension_set(dimensionSet)
 
-        self.dimensions = dimension_sets
+        self.dimensions = dimensionSets
 
     def set_default_dimensions(self, default_dimensions: Dict) -> None:
         """
