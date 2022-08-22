@@ -135,7 +135,7 @@ set_dimensions(
 ```py
 set_dimensions(
   { "Operation": "Aggregator" },
-  use_default = True  # default dimensions would be enabled
+  use_default=True  # default dimensions would be enabled
 )
 ```
 
@@ -166,9 +166,8 @@ set_namespace("MyApplication")
 
 - **flush**()
 
-Flushes the current MetricsContext to the configured sink and resets all properties, dimensions and metric values. The namespace and default dimensions will be preserved across flushes.
-
-The default behavior is to clear all custom dimensions (dimensions added by `put_dimension`) across each flush(), but this can be configured by invoking `logger.flush_preserve_dimensions = True`.
+Flushes the current MetricsContext to the configured sink and resets all properties and metric values. The namespace and default dimensions will be preserved across flushes.
+Custom dimensions are **not** preserved by default, but this behavior can be changed by invoking `logger.flush_preserve_dimensions = True`, so that custom dimensions would be preserved after each flushing thereafter.
 
 Example:
 
