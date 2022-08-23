@@ -159,7 +159,7 @@ class MetricsContext(object):
         new_properties: Dict = {}
         new_properties.update(self.properties)
 
-        # dimensions added with put_dimension will not be copied.
+        # custom dimensions will not be copied.
         # the reason for this is so that you can flush the same scope multiple
         # times without stacking new dimensions. Example:
         #
@@ -181,7 +181,7 @@ class MetricsContext(object):
     def create_copy_with_context_with_dimensions(self) -> "MetricsContext":
         """
         Creates a deep copy of the context excluding metrics.
-        Dimensions added with put_dimension will be copied, this helps reuse of dimension sets.
+        Custom dimensions will be copied, this helps reuse of dimension sets.
         """
         new_context = self.create_copy_with_context()
         new_context.dimensions.extend(self.dimensions)
