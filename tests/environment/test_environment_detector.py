@@ -25,7 +25,7 @@ def before():
 
 
 @pytest.mark.asyncio
-async def test_resolve_environment_returns_LambdaEnvironment(before):
+async def test_resolve_environment_returns_lambda_environment(before):
     # arrange
     os.environ["AWS_LAMBDA_FUNCTION_NAME"] = fake.word()
 
