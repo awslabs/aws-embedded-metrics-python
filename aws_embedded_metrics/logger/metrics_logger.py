@@ -38,7 +38,7 @@ class MetricsLogger:
         # first time in a non-lambda environment
         environment = await self.resolve_environment()
 
-        self.__configureContextForEnvironment(environment)
+        self.__configure_context_for_environment(environment)
         sink = environment.get_sink()
 
         # accept and reset the context
@@ -46,7 +46,7 @@ class MetricsLogger:
         self.context = self.context.create_copy_with_context() if not self.flush_preserve_dimensions \
             else self.context.create_copy_with_context_with_dimensions()
 
-    def __configureContextForEnvironment(self, env: Environment) -> None:
+    def __configure_context_for_environment(self, env: Environment) -> None:
         default_dimensions = {
             # LogGroup name will entirely depend on the environment since there
             # are some cases where the LogGroup cannot be configured (e.g. Lambda)

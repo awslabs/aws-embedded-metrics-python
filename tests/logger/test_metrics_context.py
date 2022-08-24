@@ -244,7 +244,7 @@ def test_put_metric_adds_metrics():
     assert metric.values == [metric_value]
 
 
-def test_put_metric_uses_None_unit_if_not_provided():
+def test_put_metric_uses_none_unit_if_not_provided():
     # arrange
     context = MetricsContext()
     metric_key = fake.word()
@@ -343,7 +343,7 @@ def test_set_dimensions_overwrites_all_dimensions():
     context.set_default_dimensions({fake.word(): fake.word})
     context.put_dimensions({fake.word(): fake.word})
 
-    expected_dimensions = {fake.word(): fake.word}
+    expected_dimensions = [{fake.word(): fake.word}]
 
     # act
     context.set_dimensions(expected_dimensions)

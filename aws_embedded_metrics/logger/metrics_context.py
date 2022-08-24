@@ -98,8 +98,8 @@ class MetricsContext(object):
         """
         self.should_use_default_dimensions = use_default
 
-        for dimensionSet in dimension_sets:
-            self.validate_dimension_set(dimensionSet)
+        for dimension_set in dimension_sets:
+            self.validate_dimension_set(dimension_set)
 
         self.dimensions = dimension_sets
 

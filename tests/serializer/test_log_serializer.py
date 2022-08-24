@@ -290,8 +290,8 @@ def get_empty_payload():
     }
 
 
-def assert_json_equality(actualJSON, expectedObj):
-    actualObj = json.loads(actualJSON)
-    print("Expected: ", expectedObj)
-    print("Actual: ", actualObj)
-    assert actualObj == expectedObj
+def assert_json_equality(actual_json, expected_obj):
+    actual_obj = json.loads(actual_json)
+    print("Expected: ", expected_obj)
+    print("Actual: ", actual_obj)
+    assert actual_obj == expected_obj
