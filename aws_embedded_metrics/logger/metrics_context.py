@@ -181,7 +181,7 @@ class MetricsContext(object):
     def create_copy_with_context_with_dimensions(self) -> "MetricsContext":
         """
         Creates a deep copy of the context excluding metrics.
-        Custom dimensions will be copied, this helps reuse of dimension sets.
+        Custom dimensions will be copied, this helps with the reuse of dimension sets.
         """
         new_context = self.create_copy_with_context()
         new_context.dimensions.extend(self.dimensions)
