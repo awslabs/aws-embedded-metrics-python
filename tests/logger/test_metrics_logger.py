@@ -192,6 +192,50 @@ async def test_put_dimension(mocker):
 
 
 @pytest.mark.asyncio
+async def test_reset_dimension_with_default_dimension(mocker):
+    # arrange
+    pair1 = ["key1", "val1"]
+    pair2 = ["key2", "val2"]
+
+    logger, sink, env = get_logger_and_sink(mocker)
+
+    # act
+    logger.put_dimensions({pair1[0]: pair1[1]})
+    logger.reset_dimensions(True)
+    logger.put_dimensions({pair2[0]: pair2[1]})
+    await logger.flush()
+
+    # assert
+    context = get_flushed_context(sink)
+    dimensions = context.get_dimensions()
+    assert len(dimensions) == 1
+    assert len(dimensions[0]) == 4
+    assert dimensions[0][pair2[0]] == pair2[1]
+
+
+@pytest.mark.asyncio
+async def test_reset_dimension_without_default_dimension(mocker):
+    # arrange
+    pair1 = ["key1", "val1"]
+    pair2 = ["key2", "val2"]
+
+    logger, sink, env = get_logger_and_sink(mocker)
+
+    # act
+    logger.put_dimensions({pair1[0]: pair1[1]})
+    logger.reset_dimensions(False)
+    logger.put_dimensions({pair2[0]: pair2[1]})
+    await logger.flush()
+
+    # assert
+    context = get_flushed_context(sink)
+    dimensions = context.get_dimensions()
+    assert len(dimensions) == 1
+    assert len(dimensions[0]) == 1
+    assert dimensions[0][pair2[0]] == pair2[1]
+
+
+@pytest.mark.asyncio
 async def test_logger_configures_default_dimensions_on_flush(before, mocker):
     # arrange
     log_group_name = fake.word()
@@ -268,6 +312,32 @@ async def test_set_dimensions_overrides_all_dimensions(mocker):
 
 
 @pytest.mark.asyncio
+async def test_configure_set_dimensions_to_preserve_default_dimensions(mocker):
+    # arrange
+    logger, sink, env = get_logger_and_sink(mocker)
+
+    # setup the typical default dimensions
+    env.get_log_group_name.return_value = fake.word()
+    env.get_name.return_value = fake.word()
+    env.get_type.return_value = fake.word()
+
+    expected_key = fake.word()
+    expected_value = fake.word()
+
+    # act
+    logger.set_dimensions({expected_key: expected_value}, use_default=True)
+    await logger.flush()
+
+    # assert
+    context = get_flushed_context(sink)
+    dimension_sets = context.get_dimensions()
+    assert len(dimension_sets) == 1
+    dimensions = dimension_sets[0]
+    assert len(dimensions) == 4
+    assert dimensions[expected_key] == expected_value
+
+
+@pytest.mark.asyncio
 async def test_can_set_namespace(mocker):
     # arrange
     expected_value = fake.word()
@@ -314,6 +384,59 @@ async def test_context_is_preserved_across_flushes(mocker):
     assert context.namespace == expected_namespace
     assert context.properties[expected_property_key] == expected_value
     assert context.metrics[metric_key].values == [1]
+
+
+@pytest.mark.asyncio
+async def test_flush_dont_preserve_dimensions_by_default(mocker):
+    # arrange
+    dimension_key = "Dim"
+    dimension_value = "Value"
+
+    logger, sink, env = get_logger_and_sink(mocker)
+
+    logger.set_dimensions({dimension_key: dimension_value})
+
+    # act
+    await logger.flush()
+
+    context = sink.accept.call_args[0][0]
+    dimensions = context.get_dimensions()
+    assert len(dimensions) == 1
+    assert dimensions[0][dimension_key] == dimension_value
+
+    await logger.flush()
+
+    context = sink.accept.call_args[0][0]
+    dimensions = context.get_dimensions()
+    assert len(dimensions) == 1
+    assert dimension_key not in dimensions[0]
+
+
+@pytest.mark.asyncio
+async def test_configure_flush_to_preserve_dimensions(mocker):
+    # arrange
+    dimension_key = "Dim"
+    dimension_value = "Value"
+
+    logger, sink, env = get_logger_and_sink(mocker)
+
+    logger.set_dimensions({dimension_key: dimension_value})
+    logger.flush_preserve_dimensions = True
+
+    # act
+    await logger.flush()
+
+    context = sink.accept.call_args[0][0]
+    dimensions = context.get_dimensions()
+    assert len(dimensions) == 1
+    assert dimensions[0][dimension_key] == dimension_value
+
+    await logger.flush()
+
+    context = sink.accept.call_args[0][0]
+    dimensions = context.get_dimensions()
+    assert len(dimensions) == 1
+    assert dimensions[0][dimension_key] == dimension_value
 
 
 # Test helper methods

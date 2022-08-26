@@ -110,9 +110,9 @@ put_dimensions({ "Operation": "Aggregator" })
 put_dimensions({ "Operation": "Aggregator", "DeviceType": "Actuator" })
 ```
 
-- **set_dimensions**(\*dimensions: Dict[str, str]) -> MetricsLogger
+- **set_dimensions**(\*dimensions: Dict[str, str], use_default: bool = False) -> MetricsLogger
 
-Explicitly override all dimensions. This will remove the default dimensions.
+Explicitly override all dimensions. By default, this will disable the default dimensions, but can be configured using the *keyword-only* parameter `use_default`.
 
 **WARNING**: Every distinct value will result in a new CloudWatch Metric.
 If the cardinality of a particular value is expected to be high, you should consider
@@ -132,6 +132,23 @@ set_dimensions(
 )
 ```
 
+```py
+set_dimensions(
+  { "Operation": "Aggregator" },
+  use_default=True  # default dimensions would be enabled
+)
+```
+
+- **reset_dimensions**(use_default: bool) -> MetricsLogger
+
+Explicitly clear all custom dimensions. The behavior of whether default dimensions should be used can be configured with the `use_default` parameter.
+
+Examples:
+
+```py
+reset_dimensions(False)  # this will clear all custom dimensions as well as disable default dimensions
+```
+
 - **set_namespace**(value: str) -> MetricsLogger
 
 Sets the CloudWatch [namespace](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#Namespace) that extracted metrics should be published to. If not set, a default value of aws-embedded-metrics will be used.
@@ -149,7 +166,24 @@ set_namespace("MyApplication")
 
 - **flush**()
 
-Flushes the current MetricsContext to the configured sink and resets all properties, dimensions and metric values. The namespace and default dimensions will be preserved across flushes.
+Flushes the current MetricsContext to the configured sink and resets all properties and metric values. The namespace and default dimensions will be preserved across flushes.
+Custom dimensions are **not** preserved by default, but this behavior can be changed by invoking `logger.flush_preserve_dimensions = True`, so that custom dimensions would be preserved after each flushing thereafter.
+
+Example:
+
+```py
+logger.flush()  # only default dimensions will be preserved after each flush()
+```
+
+```py
+logger.flush_preserve_dimensions = True
+logger.flush()  # custom dimensions and default dimensions will be preserved after each flush()
+```
+
+```py
+logger.reset_dimensions(False)
+logger.flush()  # default dimensions are disabled; no dimensions will be preserved after each flush()
+```
 
 ### Configuration
 
