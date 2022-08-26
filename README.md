@@ -141,7 +141,7 @@ set_dimensions(
 
 - **reset_dimensions**(use_default: bool) -> MetricsLogger
 
-Explicitly clear all custom dimensions. The behavior of whether default dimensions should be used can be configured by `use_default` parameter.
+Explicitly clear all custom dimensions. The behavior of whether default dimensions should be used can be configured with the `use_default` parameter.
 
 Examples:
 
