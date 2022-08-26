@@ -176,7 +176,7 @@ logger.flush()  # only default dimensions will be preserved after each flush()
 ```
 
 ```py
-logger.flush_preserve_dimensions(True)
+logger.flush_preserve_dimensions = True
 logger.flush()  # custom dimensions and default dimensions will be preserved after each flush()
 ```
 
