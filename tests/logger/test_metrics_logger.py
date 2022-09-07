@@ -2,6 +2,8 @@ from aws_embedded_metrics import config
 from aws_embedded_metrics.logger import metrics_logger
 from aws_embedded_metrics.sinks import Sink
 from aws_embedded_metrics.environment import Environment
+from aws_embedded_metrics.exceptions import InvalidNamespaceError
+import aws_embedded_metrics.constants as constants
 import pytest
 from faker import Faker
 from asyncio import Future
@@ -281,6 +283,14 @@ async def test_can_set_namespace(mocker):
     # assert
     context = get_flushed_context(sink)
     assert context.namespace == expected_value
+
+
+@pytest.mark.parametrize("namespace", [None, "", " ", "a" * (constants.MAX_NAMESPACE_LENGTH + 1), "ŋàɱȅƨƥȁƈȅ", "namespace "])
+def test_set_invalid_namespace_throws_exception(namespace, mocker):
+    logger, sink, env = get_logger_and_sink(mocker)
+
+    with pytest.raises(InvalidNamespaceError):
+        logger.set_namespace(namespace)
 
 
 @pytest.mark.asyncio

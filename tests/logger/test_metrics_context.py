@@ -1,10 +1,14 @@
+import pytest
+import math
+import random
+from aws_embedded_metrics import constants
+from aws_embedded_metrics.unit import Unit
 from aws_embedded_metrics import config
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.constants import DEFAULT_NAMESPACE
-from aws_embedded_metrics.exceptions import DimensionSetExceededError
+from aws_embedded_metrics.exceptions import DimensionSetExceededError, InvalidDimensionError, InvalidMetricError
 from importlib import reload
 from faker import Faker
-import pytest
 
 fake = Faker()
 
@@ -228,12 +232,37 @@ def test_get_dimensions_returns_merged_custom_and_default_dimensions():
     assert [expected_dimensions] == actual_dimensions
 
 
+@pytest.mark.parametrize(
+    "name, value",
+    [
+        (None, "value"),
+        ("", "value"),
+        (" ", "value"),
+        ("a" * (constants.MAX_DIMENSION_NAME_LENGTH + 1), "value"),
+        ("ḓɨɱɛɳʂɨøɳ", "value"),
+        (":dim", "value"),
+        ("dim", ""),
+        ("dim", " "),
+        ("dim", "a" * (constants.MAX_DIMENSION_VALUE_LENGTH + 1)),
+        ("dim", "ṽɑɭʊɛ"),
+    ]
+)
+def test_add_invalid_dimensions_raises_exception(name, value):
+    context = MetricsContext()
+
+    with pytest.raises(InvalidDimensionError):
+        context.put_dimensions({name: value})
+
+    with pytest.raises(InvalidDimensionError):
+        context.set_dimensions([{name: value}])
+
+
 def test_put_metric_adds_metrics():
     # arrange
     context = MetricsContext()
     metric_key = fake.word()
     metric_value = fake.random.random()
-    metric_unit = fake.word()
+    metric_unit = random.choice(list(Unit)).value
 
     # act
     context.put_metric(metric_key, metric_value, metric_unit)
@@ -256,6 +285,28 @@ def test_put_metric_uses_none_unit_if_not_provided():
     # assert
     metric = context.metrics[metric_key]
     assert metric.unit == "None"
+
+
+@pytest.mark.parametrize(
+    "name, value, unit",
+    [
+        ("", 1, "None"),
+        (" ", 1, "Seconds"),
+        ("a" * (constants.MAX_METRIC_NAME_LENGTH + 1), 1, "None"),
+        ("metric", float("inf"), "Count"),
+        ("metric", float("-inf"), "Count"),
+        ("metric", float("nan"), "Count"),
+        ("metric", math.inf, "Seconds"),
+        ("metric", -math.inf, "Seconds"),
+        ("metric", math.nan, "Seconds"),
+        ("metric", 1, "Kilometers/Fahrenheit")
+    ]
+)
+def test_put_invalid_metric_raises_exception(name, value, unit):
+    context = MetricsContext()
+
+    with pytest.raises(InvalidMetricError):
+        context.put_metric(name, value, unit)
 
 
 def test_create_copy_with_context_creates_new_instance():
@@ -340,10 +391,10 @@ def test_create_copy_with_context_does_not_copy_metrics():
 def test_set_dimensions_overwrites_all_dimensions():
     # arrange
     context = MetricsContext()
-    context.set_default_dimensions({fake.word(): fake.word})
-    context.put_dimensions({fake.word(): fake.word})
+    context.set_default_dimensions({fake.word(): fake.word()})
+    context.put_dimensions({fake.word(): fake.word()})
 
-    expected_dimensions = [{fake.word(): fake.word}]
+    expected_dimensions = [{fake.word(): fake.word()}]
 
     # act
     context.set_dimensions(expected_dimensions)

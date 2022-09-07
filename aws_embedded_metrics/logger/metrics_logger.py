@@ -13,6 +13,7 @@
 
 from aws_embedded_metrics.environment import Environment
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
+from aws_embedded_metrics.validator import validate_namespace
 from aws_embedded_metrics.config import get_config
 from typing import Any, Awaitable, Callable, Dict, Tuple
 import sys
@@ -68,6 +69,7 @@ class MetricsLogger:
         return self
 
     def set_namespace(self, namespace: str) -> "MetricsLogger":
+        validate_namespace(namespace)
         self.context.namespace = namespace
         return self
 
