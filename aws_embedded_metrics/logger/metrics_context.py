@@ -152,9 +152,10 @@ class MetricsContext(object):
     def __has_default_dimensions(self) -> bool:
         return self.default_dimensions is not None and len(self.default_dimensions) > 0
 
-    def create_copy_with_context(self) -> "MetricsContext":
+    def create_copy_with_context(self, preserve_dimensions: bool = False) -> "MetricsContext":
         """
         Creates a deep copy of the context excluding metrics.
+        Custom dimensions are NOT preserved by default unless preserve_dimensions parameter is set.
         """
         new_properties: Dict = {}
         new_properties.update(self.properties)
@@ -169,7 +170,7 @@ class MetricsContext(object):
         #
         # my_func()
         # my_func()
-        new_dimensions: List[Dict] = []
+        new_dimensions: List[Dict] = [] if not preserve_dimensions else self.dimensions
 
         new_default_dimensions: Dict = {}
         new_default_dimensions.update(self.default_dimensions)
@@ -177,16 +178,6 @@ class MetricsContext(object):
         return MetricsContext(
             self.namespace, new_properties, new_dimensions, new_default_dimensions
         )
-
-    def create_copy_with_context_with_dimensions(self) -> "MetricsContext":
-        """
-        Creates a deep copy of the context excluding metrics.
-        Custom dimensions will be copied, this helps with the reuse of dimension sets.
-        """
-        new_context = self.create_copy_with_context()
-        new_context.dimensions.extend(self.dimensions)
-
-        return new_context
 
     @staticmethod
     def empty() -> "MetricsContext":
