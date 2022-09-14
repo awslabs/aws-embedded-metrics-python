@@ -62,7 +62,7 @@ Requirements:
 - Name Length 1-255 characters
 - Name must be ASCII characters only
 - Values must be in the range of 8.515920e-109 to 1.174271e+108. In addition, special values (for example, NaN, +Infinity, -Infinity) are not supported.
-- Units must meet CW Metrics unit requirements, if not it will default to None. See [MetricDatum](https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_MetricDatum.html) for valid values.
+- Metrics must meet CloudWatch Metrics requirements, otherwise a `InvalidMetricException` will be thrown. See [MetricDatum](https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_MetricDatum.html) for valid values.
 
 Examples:
 
@@ -102,6 +102,7 @@ Requirements:
 
 - Length 1-255 characters
 - ASCII characters only
+- Dimensions must meet CloudWatch Dimensions requirements, otherwise a `InvalidDimensionException` will be thrown. See [Dimensions](https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_Dimension.html) for valid values.
 
 Examples:
 
@@ -122,6 +123,7 @@ Requirements:
 
 - Length 1-255 characters
 - ASCII characters only
+- Dimensions must meet CloudWatch Dimensions requirements, otherwise a `InvalidDimensionException` will be thrown. See [Dimensions](https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_Dimension.html) for valid values.
 
 Examples:
 
@@ -140,6 +142,7 @@ Requirements:
 
 - Name Length 1-255 characters
 - Name must be ASCII characters only
+- Namespace must meet CloudWatch Namespace requirements, otherwise a `InvalidNamespaceException` will be thrown. See [Namespaces](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#Namespace) for valid values.
 
 Examples:
 

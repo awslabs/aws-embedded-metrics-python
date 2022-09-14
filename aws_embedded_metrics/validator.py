@@ -22,6 +22,13 @@ import aws_embedded_metrics.constants as constants
 def validate_dimension_set(dimension_set: Dict[str, str]) -> None:
     """
     Validates a dimension set
+
+        Parameters:
+            dimension_set (Dict[str, str]): The dimension set to validate
+
+        Raises:
+            DimensionSetExceededError: If the dimension set is too large
+            InvalidDimensionError: If a dimension is invalid
     """
     if len(dimension_set) > constants.MAX_DIMENSION_SET_SIZE:
         raise DimensionSetExceededError(
@@ -53,6 +60,14 @@ def validate_dimension_set(dimension_set: Dict[str, str]) -> None:
 def validate_metric(name: str, value: float, unit: Optional[str]) -> None:
     """
     Validates a metric
+
+        Parameters:
+            name (str): The name of the metric
+            value (float): The value of the metric
+            unit (Optional[str]): The unit of the metric
+
+        Raises:
+            InvalidMetricError: If the metric is invalid
     """
     if not name or len(name.strip()) == 0:
         raise InvalidMetricError("Metric name must include at least one non-whitespace character")
@@ -70,6 +85,12 @@ def validate_metric(name: str, value: float, unit: Optional[str]) -> None:
 def validate_namespace(namespace: str) -> None:
     """
     Validates a namespace
+
+        Parameters:
+            namespace (str): The namespace to validate
+
+        Raises:
+            InvalidNamespaceError: If the namespace is invalid
     """
     if not namespace or len(namespace.strip()) == 0:
         raise InvalidNamespaceError("Namespace must include at least one non-whitespace character")
