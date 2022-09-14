@@ -78,7 +78,7 @@ class MetricsContext(object):
 
         self.dimensions.append(dimension_set)
 
-    def set_dimensions(self, dimension_sets: List[Dict[str, str]]) -> None:
+    def set_dimensions(self, dimension_sets: List[Dict[str, str]], use_default: bool = False) -> None:
         """
         Overwrite all dimensions.
         ```
@@ -87,7 +87,7 @@ class MetricsContext(object):
             { "k1": "v1", "k2": "v2" }])
         ```
         """
-        self.should_use_default_dimensions = False
+        self.should_use_default_dimensions = use_default
 
         for dimension_set in dimension_sets:
             validate_dimension_set(dimension_set)
@@ -104,6 +104,16 @@ class MetricsContext(object):
         the default dimensions.
         """
         self.default_dimensions = default_dimensions
+
+    def reset_dimensions(self, use_default: bool) -> None:
+        """
+        Clear all custom dimensions on this MetricsLogger instance. Whether default dimensions should
+        be used can be configured by the input parameter.
+        :param use_default: indicates whether default dimensions should be used
+        """
+        new_dimensions: List[Dict] = []
+        self.dimensions = new_dimensions
+        self.should_use_default_dimensions = use_default
 
     def set_property(self, key: str, value: Any) -> None:
         self.properties[key] = value
@@ -140,7 +150,7 @@ class MetricsContext(object):
         new_properties: Dict = {}
         new_properties.update(self.properties)
 
-        # dimensions added with put_dimension will not be copied.
+        # custom dimensions will not be copied.
         # the reason for this is so that you can flush the same scope multiple
         # times without stacking new dimensions. Example:
         #
@@ -158,6 +168,16 @@ class MetricsContext(object):
         return MetricsContext(
             self.namespace, new_properties, new_dimensions, new_default_dimensions
         )
+
+    def create_copy_with_context_with_dimensions(self) -> "MetricsContext":
+        """
+        Creates a deep copy of the context excluding metrics.
+        Custom dimensions will be copied, this helps with the reuse of dimension sets.
+        """
+        new_context = self.create_copy_with_context()
+        new_context.dimensions.extend(self.dimensions)
+
+        return new_context
 
     @staticmethod
     def empty() -> "MetricsContext":
