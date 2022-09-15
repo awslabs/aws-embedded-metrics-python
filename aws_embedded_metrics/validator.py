@@ -34,27 +34,27 @@ def validate_dimension_set(dimension_set: Dict[str, str]) -> None:
         raise DimensionSetExceededError(
             f"Maximum number of dimensions per dimension set allowed are {constants.MAX_DIMENSION_SET_SIZE}")
 
-    for key, value in dimension_set.items():
-        if not key or len(key.strip()) == 0:
-            raise InvalidDimensionError("Dimension key must include at least one non-whitespace character")
+    for name, value in dimension_set.items():
+        if not name or len(name.strip()) == 0:
+            raise InvalidDimensionError("Dimension name must include at least one non-whitespace character")
 
         if not value or len(value.strip()) == 0:
             raise InvalidDimensionError("Dimension value must include at least one non-whitespace character")
 
-        if len(key) > constants.MAX_DIMENSION_NAME_LENGTH:
-            raise InvalidDimensionError(f"Dimension key cannot be longer than {constants.MAX_DIMENSION_NAME_LENGTH} characters")
+        if len(name) > constants.MAX_DIMENSION_NAME_LENGTH:
+            raise InvalidDimensionError(f"Dimension name cannot be longer than {constants.MAX_DIMENSION_NAME_LENGTH} characters")
 
         if len(value) > constants.MAX_DIMENSION_VALUE_LENGTH:
             raise InvalidDimensionError(f"Dimension value cannot be longer than {constants.MAX_DIMENSION_VALUE_LENGTH} characters")
 
-        if not key.isascii():
-            raise InvalidDimensionError(f"Dimension key contains invalid characters: {key}")
+        if not name.isascii():
+            raise InvalidDimensionError(f"Dimension name contains invalid characters: {name}")
 
         if not value.isascii():
             raise InvalidDimensionError(f"Dimension value contains invalid characters: {value}")
 
-        if key.startswith(":"):
-            raise InvalidDimensionError("Dimension key cannot start with ':'")
+        if name.startswith(":"):
+            raise InvalidDimensionError("Dimension name cannot start with ':'")
 
 
 def validate_metric(name: str, value: float, unit: Optional[str]) -> None:
