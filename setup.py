@@ -24,5 +24,6 @@ setup(
     packages=find_packages(exclude=["tests*"]),
     include_package_data=True,
     install_requires=["aiohttp"],
-    test_suite="tests"
+    test_suite="tests",
+    python_requires=">=3.6"
 )
