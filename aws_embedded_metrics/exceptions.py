@@ -15,3 +15,21 @@ class DimensionSetExceededError(Exception):
     def __init__(self, message: str) -> None:
         # Call the base class constructor with the parameters it needs
         super().__init__(message)
+
+
+class InvalidDimensionError(Exception):
+    def __init__(self, message: str) -> None:
+        # Call the base class constructor with the parameters it needs
+        super().__init__(message)
+
+
+class InvalidMetricError(Exception):
+    def __init__(self, message: str) -> None:
+        # Call the base class constructor with the parameters it needs
+        super().__init__(message)
+
+
+class InvalidNamespaceError(Exception):
+    def __init__(self, message: str) -> None:
+        # Call the base class constructor with the parameters it needs
+        super().__init__(message)

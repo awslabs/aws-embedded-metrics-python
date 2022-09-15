@@ -1,7 +1,17 @@
-from enum import Enum
+from enum import Enum, EnumMeta
 
 
-class Unit(Enum):
+class UnitMeta(EnumMeta):
+    def __contains__(self, item: object) -> bool:
+        try:
+            self(item)
+        except (ValueError, TypeError):
+            return False
+        else:
+            return True
+
+
+class Unit(Enum, metaclass=UnitMeta):
     SECONDS = "Seconds"
     MICROSECONDS = "Microseconds"
     MILLISECONDS = "Milliseconds"
@@ -28,3 +38,4 @@ class Unit(Enum):
     GIGABITS_PER_SECOND = "Gigabits/Second"
     TERABITS_PER_SECOND = "Terabits/Second"
     COUNT_PER_SECOND = "Count/Second"
+    NONE = "None"

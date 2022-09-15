@@ -94,7 +94,7 @@ def test_serialize_metrics():
 
 def test_serialize_more_than_100_metrics():
     # arrange
-    expected_value = fake.word()
+    expected_value = fake.random.randrange(0, 100)
     expected_batches = 3
     metrics = 295
 
@@ -209,7 +209,7 @@ def test_serialize_with_multiple_metrics():
 
     for index in range(metrics):
         expected_key = f"Metric-{index}"
-        expected_value = fake.word()
+        expected_value = fake.random.randrange(0, 100)
         context.put_metric(expected_key, expected_value)
 
         expected_metric_definition = {"Name": expected_key, "Unit": "None"}
@@ -229,7 +229,7 @@ def test_serialize_with_multiple_metrics():
 def test_serialize_metrics_with_multiple_datapoints():
     # arrange
     expected_key = fake.word()
-    expected_values = [fake.word(), fake.word()]
+    expected_values = [fake.random.randrange(0, 100), fake.random.randrange(0, 100)]
     expected_metric_definition = {"Name": expected_key, "Unit": "None"}
     expected = {**get_empty_payload()}
     expected[expected_key] = expected_values
