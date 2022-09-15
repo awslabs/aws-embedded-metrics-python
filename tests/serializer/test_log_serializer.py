@@ -1,9 +1,11 @@
 from aws_embedded_metrics.config import get_config
+from aws_embedded_metrics.exceptions import DimensionSetExceededError
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.serializers.log_serializer import LogSerializer
 from collections import Counter
 from faker import Faker
 import json
+import pytest
 
 fake = Faker()
 
@@ -19,37 +21,6 @@ def test_serialize_dimensions():
 
     expected = {**get_empty_payload(), **dimensions}
     expected["_aws"]["CloudWatchMetrics"][0]["Dimensions"].append([expected_key])
-
-    context = get_context()
-    context.put_dimensions(dimensions)
-
-    # act
-    result_json = serializer.serialize(context)[0]
-
-    # assert
-    assert_json_equality(result_json, expected)
-
-
-def test_cannot_serialize_more_than_9_dimensions():
-    # arrange
-    dimensions = {}
-    dimension_pointers = []
-    allowed_dimensions = 9
-    dimensions_to_add = 15
-
-    for i in range(0, dimensions_to_add):
-        print(i)
-        expected_key = f"{i}"
-        expected_value = fake.word()
-        dimensions[expected_key] = expected_value
-        dimension_pointers.append(expected_key)
-
-    expected_dimensions_pointers = dimension_pointers[0:allowed_dimensions]
-
-    expected = {**get_empty_payload(), **dimensions}
-    expected["_aws"]["CloudWatchMetrics"][0]["Dimensions"].append(
-        expected_dimensions_pointers
-    )
 
     context = get_context()
     context.put_dimensions(dimensions)
@@ -79,6 +50,25 @@ def test_serialize_properties():
     assert_json_equality(result_json, expected)
 
 
+def test_default_and_custom_dimensions_combined_limit_exceeded():
+    # While serializing default dimensions are added to the custom dimension set,
+    # and the combined size of the dimension set should not be more than 30
+    dimensions = {}
+    default_dimension_key = fake.word()
+    default_dimension_value = fake.word()
+    custom_dimensions_to_add = 30
+
+    for i in range(0, custom_dimensions_to_add):
+        dimensions[f"{i}"] = fake.word()
+
+    context = get_context()
+    context.set_default_dimensions({default_dimension_key: default_dimension_value})
+    context.put_dimensions(dimensions)
+
+    with pytest.raises(DimensionSetExceededError):
+        serializer.serialize(context)
+
+
 def test_serialize_metrics():
     # arrange
     expected_key = fake.word()
@@ -104,7 +94,7 @@ def test_serialize_metrics():
 
 def test_serialize_more_than_100_metrics():
     # arrange
-    expected_value = fake.word()
+    expected_value = fake.random.randrange(0, 100)
     expected_batches = 3
     metrics = 295
 
@@ -219,7 +209,7 @@ def test_serialize_with_multiple_metrics():
 
     for index in range(metrics):
         expected_key = f"Metric-{index}"
-        expected_value = fake.word()
+        expected_value = fake.random.randrange(0, 100)
         context.put_metric(expected_key, expected_value)
 
         expected_metric_definition = {"Name": expected_key, "Unit": "None"}
@@ -239,7 +229,7 @@ def test_serialize_with_multiple_metrics():
 def test_serialize_metrics_with_multiple_datapoints():
     # arrange
     expected_key = fake.word()
-    expected_values = [fake.word(), fake.word()]
+    expected_values = [fake.random.randrange(0, 100), fake.random.randrange(0, 100)]
     expected_metric_definition = {"Name": expected_key, "Unit": "None"}
     expected = {**get_empty_payload()}
     expected[expected_key] = expected_values
@@ -300,8 +290,8 @@ def get_empty_payload():
     }
 
 
-def assert_json_equality(actualJSON, expectedObj):
-    actualObj = json.loads(actualJSON)
-    print("Expected: ", expectedObj)
-    print("Actual: ", actualObj)
-    assert actualObj == expectedObj
+def assert_json_equality(actual_json, expected_obj):
+    actual_obj = json.loads(actual_json)
+    print("Expected: ", expected_obj)
+    print("Actual: ", actual_obj)
+    assert actual_obj == expected_obj

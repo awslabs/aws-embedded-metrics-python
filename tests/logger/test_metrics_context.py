@@ -1,6 +1,12 @@
+import pytest
+import math
+import random
+from aws_embedded_metrics import constants
+from aws_embedded_metrics.unit import Unit
 from aws_embedded_metrics import config
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.constants import DEFAULT_NAMESPACE
+from aws_embedded_metrics.exceptions import DimensionSetExceededError, InvalidDimensionError, InvalidMetricError
 from importlib import reload
 from faker import Faker
 
@@ -42,14 +48,115 @@ def test_put_dimension_adds_to_dimensions():
     # arrange
     context = MetricsContext()
 
-    dimension_key = fake.word()
-    dimension_value = fake.word()
+    dimensions_to_add = 30
+    dimension_set = generate_dimension_set(dimensions_to_add)
 
     # act
-    context.put_dimensions({dimension_key: dimension_value})
+    context.put_dimensions(dimension_set)
 
     # assert
-    assert context.dimensions == [{dimension_key: dimension_value}]
+    assert context.dimensions == [dimension_set]
+
+
+def test_put_dimensions_accept_multiple_unique_dimensions():
+    # arrange
+    context = MetricsContext()
+    dimension1 = {fake.word(): fake.word()}
+    dimension2 = {fake.word(): fake.word()}
+
+    # act
+    context.put_dimensions(dimension1)
+    context.put_dimensions(dimension2)
+
+    # assert
+    assert len(context.get_dimensions()) == 2
+    assert context.get_dimensions()[0] == dimension1
+    assert context.get_dimensions()[1] == dimension2
+
+
+def test_put_dimensions_prevent_duplicate_dimensions():
+    # arrange
+    context = MetricsContext()
+    pair1 = [fake.word(), fake.word()]
+    pair2 = [fake.word(), fake.word()]
+
+    dimension1 = {pair1[0]: pair1[1]}
+    dimension2 = {pair2[0]: pair2[1]}
+    dimension3 = {pair1[0]: pair1[1], pair2[0]: pair2[1]}
+
+    # act
+    context.put_dimensions(dimension1)
+    context.put_dimensions(dimension2)
+    context.put_dimensions(dimension1)
+    context.put_dimensions(dimension3)
+    context.put_dimensions(dimension2)
+    context.put_dimensions(dimension3)
+
+    # assert
+    assert len(context.get_dimensions()) == 3
+    assert context.get_dimensions()[0] == dimension1
+    assert context.get_dimensions()[1] == dimension2
+    assert context.get_dimensions()[2] == dimension3
+
+
+def test_put_dimensions_use_most_recent_dimension_value():
+    # arrange
+    context = MetricsContext()
+    key1 = fake.word()
+    key2 = fake.word()
+    val1 = fake.word()
+    val2 = fake.word()
+
+    dimension1 = {key1: val1}
+    dimension2 = {key2: val2}
+    dimension3 = {key1: val2}
+    dimension4 = {key2: val1}
+    dimension5 = {key1: val1, key2: val2}
+    dimension6 = {key1: val2, key2: val1}
+
+    # act
+    context.put_dimensions(dimension1)
+    context.put_dimensions(dimension2)
+    context.put_dimensions(dimension5)
+    context.put_dimensions(dimension3)
+    context.put_dimensions(dimension4)
+    context.put_dimensions(dimension6)
+
+    # assert
+    assert len(context.get_dimensions()) == 3
+    assert context.get_dimensions()[0] == dimension3
+    assert context.get_dimensions()[1] == dimension4
+    assert context.get_dimensions()[2] == dimension6
+
+
+def test_put_dimensions_with_set_dimensions():
+    # arrange
+    context = MetricsContext()
+    key1 = fake.word()
+    key2 = fake.word()
+    val1 = fake.word()
+    val2 = fake.word()
+
+    dimension1 = {key1: val1}
+    dimension2 = {key2: val2}
+    dimension3 = {key1: val2}
+    dimension4 = {key2: val1}
+    dimension5 = {key1: val1, key2: val2}
+    dimension6 = {key1: val2, key2: val1}
+
+    # act
+    context.put_dimensions(dimension1)
+    context.put_dimensions(dimension2)
+    context.set_dimensions([dimension3])
+    context.put_dimensions(dimension4)
+    context.put_dimensions(dimension5)
+    context.put_dimensions(dimension6)
+
+    # assert
+    assert len(context.get_dimensions()) == 3
+    assert context.get_dimensions()[0] == dimension3
+    assert context.get_dimensions()[1] == dimension4
+    assert context.get_dimensions()[2] == dimension6
 
 
 def test_get_dimensions_returns_only_custom_dimensions_if_no_default_dimensions_not_set():
@@ -125,12 +232,37 @@ def test_get_dimensions_returns_merged_custom_and_default_dimensions():
     assert [expected_dimensions] == actual_dimensions
 
 
+@pytest.mark.parametrize(
+    "name, value",
+    [
+        (None, "value"),
+        ("", "value"),
+        (" ", "value"),
+        ("a" * (constants.MAX_DIMENSION_NAME_LENGTH + 1), "value"),
+        ("ḓɨɱɛɳʂɨøɳ", "value"),
+        (":dim", "value"),
+        ("dim", ""),
+        ("dim", " "),
+        ("dim", "a" * (constants.MAX_DIMENSION_VALUE_LENGTH + 1)),
+        ("dim", "ṽɑɭʊɛ"),
+    ]
+)
+def test_add_invalid_dimensions_raises_exception(name, value):
+    context = MetricsContext()
+
+    with pytest.raises(InvalidDimensionError):
+        context.put_dimensions({name: value})
+
+    with pytest.raises(InvalidDimensionError):
+        context.set_dimensions([{name: value}])
+
+
 def test_put_metric_adds_metrics():
     # arrange
     context = MetricsContext()
     metric_key = fake.word()
     metric_value = fake.random.random()
-    metric_unit = fake.word()
+    metric_unit = random.choice(list(Unit)).value
 
     # act
     context.put_metric(metric_key, metric_value, metric_unit)
@@ -141,7 +273,7 @@ def test_put_metric_adds_metrics():
     assert metric.values == [metric_value]
 
 
-def test_put_metric_uses_None_unit_if_not_provided():
+def test_put_metric_uses_none_unit_if_not_provided():
     # arrange
     context = MetricsContext()
     metric_key = fake.word()
@@ -153,6 +285,28 @@ def test_put_metric_uses_None_unit_if_not_provided():
     # assert
     metric = context.metrics[metric_key]
     assert metric.unit == "None"
+
+
+@pytest.mark.parametrize(
+    "name, value, unit",
+    [
+        ("", 1, "None"),
+        (" ", 1, "Seconds"),
+        ("a" * (constants.MAX_METRIC_NAME_LENGTH + 1), 1, "None"),
+        ("metric", float("inf"), "Count"),
+        ("metric", float("-inf"), "Count"),
+        ("metric", float("nan"), "Count"),
+        ("metric", math.inf, "Seconds"),
+        ("metric", -math.inf, "Seconds"),
+        ("metric", math.nan, "Seconds"),
+        ("metric", 1, "Kilometers/Fahrenheit")
+    ]
+)
+def test_put_invalid_metric_raises_exception(name, value, unit):
+    context = MetricsContext()
+
+    with pytest.raises(InvalidMetricError):
+        context.put_metric(name, value, unit)
 
 
 def test_create_copy_with_context_creates_new_instance():
@@ -237,10 +391,10 @@ def test_create_copy_with_context_does_not_copy_metrics():
 def test_set_dimensions_overwrites_all_dimensions():
     # arrange
     context = MetricsContext()
-    context.set_default_dimensions({fake.word(): fake.word})
-    context.put_dimensions({fake.word(): fake.word})
+    context.set_default_dimensions({fake.word(): fake.word()})
+    context.put_dimensions({fake.word(): fake.word()})
 
-    expected_dimensions = {fake.word(): fake.word}
+    expected_dimensions = [{fake.word(): fake.word()}]
 
     # act
     context.set_dimensions(expected_dimensions)
@@ -264,3 +418,32 @@ def test_create_copy_with_context_does_not_repeat_dimensions():
 
     # assert
     assert len(new_context.get_dimensions()) == 1
+
+
+def test_cannot_set_more_than_30_dimensions():
+    context = MetricsContext()
+    dimensions_to_add = 32
+    dimension_set = generate_dimension_set(dimensions_to_add)
+
+    with pytest.raises(DimensionSetExceededError):
+        context.set_dimensions([dimension_set])
+
+
+def test_cannot_put_more_than_30_dimensions():
+    context = MetricsContext()
+    dimensions_to_add = 32
+    dimension_set = generate_dimension_set(dimensions_to_add)
+
+    with pytest.raises(DimensionSetExceededError):
+        context.put_dimensions(dimension_set)
+
+
+# Test utility method
+
+
+def generate_dimension_set(dimensions_to_add):
+    dimension_set = {}
+    for i in range(0, dimensions_to_add):
+        dimension_set[f"{i}"] = fake.word()
+
+    return dimension_set

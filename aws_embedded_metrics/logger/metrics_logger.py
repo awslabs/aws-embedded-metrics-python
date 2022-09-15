@@ -13,6 +13,7 @@
 
 from aws_embedded_metrics.environment import Environment
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
+from aws_embedded_metrics.validator import validate_namespace
 from aws_embedded_metrics.config import get_config
 from typing import Any, Awaitable, Callable, Dict, Tuple
 import sys
@@ -29,6 +30,7 @@ class MetricsLogger:
     ):
         self.resolve_environment = resolve_environment
         self.context: MetricsContext = context or MetricsContext.empty()
+        self.flush_preserve_dimensions: bool = False
 
     async def flush(self) -> None:
         # resolve the environment and get the sink
@@ -37,14 +39,15 @@ class MetricsLogger:
         # first time in a non-lambda environment
         environment = await self.resolve_environment()
 
-        self.__configureContextForEnvironment(environment)
+        self.__configure_context_for_environment(environment)
         sink = environment.get_sink()
 
         # accept and reset the context
         sink.accept(self.context)
-        self.context = self.context.create_copy_with_context()
+        self.context = self.context.create_copy_with_context() if not self.flush_preserve_dimensions \
+            else self.context.create_copy_with_context_with_dimensions()
 
-    def __configureContextForEnvironment(self, env: Environment) -> None:
+    def __configure_context_for_environment(self, env: Environment) -> None:
         default_dimensions = {
             # LogGroup name will entirely depend on the environment since there
             # are some cases where the LogGroup cannot be configured (e.g. Lambda)
@@ -63,11 +66,16 @@ class MetricsLogger:
         self.context.put_dimensions(dimensions)
         return self
 
-    def set_dimensions(self, *dimensions: Dict[str, str]) -> "MetricsLogger":
-        self.context.set_dimensions(list(dimensions))
+    def set_dimensions(self, *dimensions: Dict[str, str], use_default: bool = False) -> "MetricsLogger":
+        self.context.set_dimensions(list(dimensions), use_default)
+        return self
+
+    def reset_dimensions(self, use_default: bool) -> "MetricsLogger":
+        self.context.reset_dimensions(use_default)
         return self
 
     def set_namespace(self, namespace: str) -> "MetricsLogger":
+        validate_namespace(namespace)
         self.context.namespace = namespace
         return self
 

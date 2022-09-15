@@ -15,7 +15,8 @@
 from aws_embedded_metrics import constants, utils
 from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.logger.metric import Metric
-from typing import List, Dict, Any
+from aws_embedded_metrics.validator import validate_dimension_set, validate_metric
+from typing import List, Dict, Any, Set
 
 
 class MetricsContext(object):
@@ -48,6 +49,7 @@ class MetricsContext(object):
         context.put_metric("Latency", 100, "Milliseconds")
         ```
         """
+        validate_metric(key, value, unit)
         metric = self.metrics.get(key)
         if metric:
             # TODO: we should log a warning if the unit has been changed
@@ -55,20 +57,28 @@ class MetricsContext(object):
         else:
             self.metrics[key] = Metric(value, unit)
 
-    def put_dimensions(self, dimensions: Dict[str, str]) -> None:
+    def put_dimensions(self, dimension_set: Dict[str, str]) -> None:
         """
         Adds dimensions to the context.
         ```
         context.put_dimensions({ "k1": "v1", "k2": "v2" })
         ```
         """
-        if dimensions is None:
+        if dimension_set is None:
             # TODO add ability to define failure strategy
             return
 
-        self.dimensions.append(dimensions)
+        validate_dimension_set(dimension_set)
 
-    def set_dimensions(self, dimensionSets: List[Dict[str, str]]) -> None:
+        # Duplicate dimension sets are removed before being added to the end of the collection.
+        # This ensures only latest dimension value is used as a target member on the root EMF node.
+        # This operation is O(n^2), but acceptable given sets are capped at 30 dimensions
+        incoming_keys: Set = set(dimension_set.keys())
+        self.dimensions = list(filter(lambda dim: (set(dim.keys()) != incoming_keys), self.dimensions))
+
+        self.dimensions.append(dimension_set)
+
+    def set_dimensions(self, dimension_sets: List[Dict[str, str]], use_default: bool = False) -> None:
         """
         Overwrite all dimensions.
         ```
@@ -77,8 +87,12 @@ class MetricsContext(object):
             { "k1": "v1", "k2": "v2" }])
         ```
         """
-        self.should_use_default_dimensions = False
-        self.dimensions = dimensionSets
+        self.should_use_default_dimensions = use_default
+
+        for dimension_set in dimension_sets:
+            validate_dimension_set(dimension_set)
+
+        self.dimensions = dimension_sets
 
     def set_default_dimensions(self, default_dimensions: Dict) -> None:
         """
@@ -90,6 +104,16 @@ class MetricsContext(object):
         the default dimensions.
         """
         self.default_dimensions = default_dimensions
+
+    def reset_dimensions(self, use_default: bool) -> None:
+        """
+        Clear all custom dimensions on this MetricsLogger instance. Whether default dimensions should
+        be used can be configured by the input parameter.
+        :param use_default: indicates whether default dimensions should be used
+        """
+        new_dimensions: List[Dict] = []
+        self.dimensions = new_dimensions
+        self.should_use_default_dimensions = use_default
 
     def set_property(self, key: str, value: Any) -> None:
         self.properties[key] = value
@@ -126,7 +150,7 @@ class MetricsContext(object):
         new_properties: Dict = {}
         new_properties.update(self.properties)
 
-        # dimensions added with put_dimension will not be copied.
+        # custom dimensions will not be copied.
         # the reason for this is so that you can flush the same scope multiple
         # times without stacking new dimensions. Example:
         #
@@ -144,6 +168,16 @@ class MetricsContext(object):
         return MetricsContext(
             self.namespace, new_properties, new_dimensions, new_default_dimensions
         )
+
+    def create_copy_with_context_with_dimensions(self) -> "MetricsContext":
+        """
+        Creates a deep copy of the context excluding metrics.
+        Custom dimensions will be copied, this helps with the reuse of dimension sets.
+        """
+        new_context = self.create_copy_with_context()
+        new_context.dimensions.extend(self.dimensions)
+
+        return new_context
 
     @staticmethod
     def empty() -> "MetricsContext":
