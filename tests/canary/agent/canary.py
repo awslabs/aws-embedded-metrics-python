@@ -31,7 +31,7 @@ async def app(init, last_run_duration, metrics):
 
 async def main():
     init = True
-    duration = None
+    duration = 0
     # wait for agent to start
     # TODO: this should not be needed if we're using a ring buffer to queue and re-try events
     await asyncio.sleep(10)
