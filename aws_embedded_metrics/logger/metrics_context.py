@@ -39,8 +39,9 @@ class MetricsContext(object):
         self.metrics: Dict[str, Metric] = {}
         self.should_use_default_dimensions = True
         self.meta: Dict[str, Any] = {"Timestamp": utils.now()}
+        self.metricNameAndResolutionMap: Dict[str, int] = {}
 
-    def put_metric(self, key: str, value: float, unit: str = None) -> None:
+    def put_metric(self, key: str, value: float, unit: str = None, storageResolution: int = 60) -> None:
         """
         Adds a metric measurement to the context.
         Multiple calls using the same key will be stored as an
@@ -49,13 +50,13 @@ class MetricsContext(object):
         context.put_metric("Latency", 100, "Milliseconds")
         ```
         """
-        validate_metric(key, value, unit)
+        validate_metric(key, value, unit, storageResolution, self.metricNameAndResolutionMap)
         metric = self.metrics.get(key)
         if metric:
             # TODO: we should log a warning if the unit has been changed
             metric.add_value(value)
         else:
-            self.metrics[key] = Metric(value, unit)
+            self.metrics[key] = Metric(value, unit, storageResolution)
 
     def put_dimensions(self, dimension_set: Dict[str, str]) -> None:
         """

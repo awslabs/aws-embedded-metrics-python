@@ -26,7 +26,7 @@ async def app(init, last_run_duration, metrics):
     metrics.set_dimensions({"Runtime": 'Python', "Platform": 'ECS', "Agent": 'CloudWatchAgent', "Version": version})
     metrics.put_metric('Invoke', 1, "Count")
     metrics.put_metric('Duration', last_run_duration, 'Seconds')
-    metrics.put_metric('Memory.RSS', process.memory_info().rss, 'Bytes')
+    metrics.put_metric('Memory.RSS', process.memory_info().rss, 'Bytes', 1)
 
 
 async def main():

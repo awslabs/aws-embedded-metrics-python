@@ -15,6 +15,7 @@ import math
 import re
 from typing import Dict, Optional
 from aws_embedded_metrics.unit import Unit
+from aws_embedded_metrics.storageResolution import StorageResolution
 from aws_embedded_metrics.exceptions import DimensionSetExceededError, InvalidDimensionError, InvalidMetricError, InvalidNamespaceError
 import aws_embedded_metrics.constants as constants
 
@@ -57,7 +58,7 @@ def validate_dimension_set(dimension_set: Dict[str, str]) -> None:
             raise InvalidDimensionError("Dimension name cannot start with ':'")
 
 
-def validate_metric(name: str, value: float, unit: Optional[str]) -> None:
+def validate_metric(name: str, value: float, unit: Optional[str], storageResolution: Optional[int], metricNameAndResolutionMap: Optional[dict]) -> None:  # noqa: E501
     """
     Validates a metric
 
@@ -65,6 +66,7 @@ def validate_metric(name: str, value: float, unit: Optional[str]) -> None:
             name (str): The name of the metric
             value (float): The value of the metric
             unit (Optional[str]): The unit of the metric
+            storageResolution (Optional[int]): The storage resolution of metric
 
         Raises:
             InvalidMetricError: If the metric is invalid
@@ -80,6 +82,16 @@ def validate_metric(name: str, value: float, unit: Optional[str]) -> None:
 
     if unit is not None and unit not in Unit:
         raise InvalidMetricError(f"Metric unit is not valid: {unit}")
+
+    if storageResolution is None or storageResolution not in StorageResolution:
+        raise InvalidMetricError(f"Metric storage Resolution is not valid: {storageResolution}")
+
+    if metricNameAndResolutionMap and name in metricNameAndResolutionMap:
+        if metricNameAndResolutionMap.get(name) is not storageResolution:
+            raise InvalidMetricError(
+                f"Resolution for metrics ${name} is already set. A single log event cannot have a metric with two different resolutions.")
+    else:
+        metricNameAndResolutionMap[name] = storageResolution
 
 
 def validate_namespace(namespace: str) -> None:

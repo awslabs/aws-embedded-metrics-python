@@ -78,8 +78,8 @@ class MetricsLogger:
         self.context.namespace = namespace
         return self
 
-    def put_metric(self, key: str, value: float, unit: str = "None") -> "MetricsLogger":
-        self.context.put_metric(key, value, unit)
+    def put_metric(self, key: str, value: float, unit: str = "None", storageResolution: int = 60) -> "MetricsLogger":
+        self.context.put_metric(key, value, unit, storageResolution)
         return self
 
     def add_stack_trace(self, key: str, details: Any = None, exc_info: Tuple = None) -> "MetricsLogger":

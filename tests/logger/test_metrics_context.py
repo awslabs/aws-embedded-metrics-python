@@ -3,6 +3,7 @@ import math
 import random
 from aws_embedded_metrics import constants
 from aws_embedded_metrics.unit import Unit
+from aws_embedded_metrics.storageResolution import StorageResolution
 from aws_embedded_metrics import config
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.constants import DEFAULT_NAMESPACE
@@ -263,14 +264,16 @@ def test_put_metric_adds_metrics():
     metric_key = fake.word()
     metric_value = fake.random.random()
     metric_unit = random.choice(list(Unit)).value
+    metric_storageResolution = random.choice(list(StorageResolution)).value
 
     # act
-    context.put_metric(metric_key, metric_value, metric_unit)
+    context.put_metric(metric_key, metric_value, metric_unit, metric_storageResolution)
 
     # assert
     metric = context.metrics[metric_key]
     assert metric.unit == metric_unit
     assert metric.values == [metric_value]
+    assert metric.storageResolution == metric_storageResolution
 
 
 def test_put_metric_uses_none_unit_if_not_provided():
@@ -287,26 +290,42 @@ def test_put_metric_uses_none_unit_if_not_provided():
     assert metric.unit == "None"
 
 
+def test_put_metric_uses_60_storage_resolution_if_not_provided():
+    # arrange
+    context = MetricsContext()
+    metric_key = fake.word()
+    metric_value = fake.random.random()
+
+    # act
+    context.put_metric(metric_key, metric_value)
+
+    # assert
+    metric = context.metrics[metric_key]
+    assert metric.storageResolution == 60
+
+
 @pytest.mark.parametrize(
-    "name, value, unit",
+    "name, value, unit, storageResolution",
     [
-        ("", 1, "None"),
-        (" ", 1, "Seconds"),
-        ("a" * (constants.MAX_METRIC_NAME_LENGTH + 1), 1, "None"),
-        ("metric", float("inf"), "Count"),
-        ("metric", float("-inf"), "Count"),
-        ("metric", float("nan"), "Count"),
-        ("metric", math.inf, "Seconds"),
-        ("metric", -math.inf, "Seconds"),
-        ("metric", math.nan, "Seconds"),
-        ("metric", 1, "Kilometers/Fahrenheit")
+        ("", 1, "None", 60),
+        (" ", 1, "Seconds", 60),
+        ("a" * (constants.MAX_METRIC_NAME_LENGTH + 1), 1, "None", 60),
+        ("metric", float("inf"), "Count", 60),
+        ("metric", float("-inf"), "Count", 60),
+        ("metric", float("nan"), "Count", 60),
+        ("metric", math.inf, "Seconds", 60),
+        ("metric", -math.inf, "Seconds", 60),
+        ("metric", math.nan, "Seconds", 60),
+        ("metric", 1, "Kilometers/Fahrenheit", 60),
+        ("metric", 1, "Seconds", 2),
+        ("metric", 1, "Seconds", None)
     ]
 )
-def test_put_invalid_metric_raises_exception(name, value, unit):
+def test_put_invalid_metric_raises_exception(name, value, unit, storageResolution):
     context = MetricsContext()
 
     with pytest.raises(InvalidMetricError):
-        context.put_metric(name, value, unit)
+        context.put_metric(name, value, unit, storageResolution)
 
 
 def test_create_copy_with_context_creates_new_instance():

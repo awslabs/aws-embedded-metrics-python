@@ -87,8 +87,11 @@ class LogSerializer(Serializer):
                     if len(metric.values) > end_index:
                         remaining_data = True
 
+                metricBody = {"Name": metric_name, "Unit": metric.unit}
+                if metric.storageResolution == 1:
+                    metricBody["StorageResolution"] = metric.storageResolution
                 if not config.disable_metric_extraction:
-                    current_body["_aws"]["CloudWatchMetrics"][0]["Metrics"].append({"Name": metric_name, "Unit": metric.unit})
+                    current_body["_aws"]["CloudWatchMetrics"][0]["Metrics"].append(metricBody)
                 num_metrics_in_current_body += 1
 
                 if (num_metrics_in_current_body == MAX_METRICS_PER_EVENT):
