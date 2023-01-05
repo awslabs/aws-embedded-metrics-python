@@ -58,7 +58,7 @@ def validate_dimension_set(dimension_set: Dict[str, str]) -> None:
             raise InvalidDimensionError("Dimension name cannot start with ':'")
 
 
-def validate_metric(name: str, value: float, unit: Optional[str], storageResolution: Optional[int], metricNameAndResolutionMap: Optional[dict]) -> None:  # noqa: E501
+def validate_metric(name: str, value: float, unit: Optional[str], storageResolution: Optional[int], metricNameAndResolutionMap: dict) -> None:  # noqa: E501
     """
     Validates a metric
 

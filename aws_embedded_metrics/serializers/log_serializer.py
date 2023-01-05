@@ -89,7 +89,7 @@ class LogSerializer(Serializer):
 
                 metricBody = {"Name": metric_name, "Unit": metric.unit}
                 if metric.storageResolution == 1:
-                    metricBody["StorageResolution"] = metric.storageResolution
+                    metricBody["StorageResolution"] = metric.storageResolution  # type: ignore
                 if not config.disable_metric_extraction:
                     current_body["_aws"]["CloudWatchMetrics"][0]["Metrics"].append(metricBody)
                 num_metrics_in_current_body += 1
