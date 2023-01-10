@@ -39,7 +39,7 @@ from aws_embedded_metrics import metric_scope
 @metric_scope
 def my_handler(metrics):
     metrics.put_dimensions({"Foo": "Bar"})
-    metrics.put_metric("ProcessingLatency", 100, "Milliseconds")
+    metrics.put_metric("ProcessingLatency", 100, "Milliseconds", 60)
     metrics.set_property("AccountId", "123456789012")
     metrics.set_property("RequestId", "422b1569-16f6-4a03")
     metrics.set_property("DeviceId", "61270781-c6ac-46f1")
@@ -53,9 +53,9 @@ def my_handler(metrics):
 
 The `MetricsLogger` is the interface you will use to publish embedded metrics.
 
-- **put_metric**(key: str, value: float, unit: str = "None") -> MetricsLogger
+- **put_metric**(key: str, value: float, unit: str = "None", storageResolution: int = 60) -> MetricsLogger
 
-Adds a new metric to the current logger context. Multiple metrics using the same key will be appended to an array of values. The Embedded Metric Format supports a maximum of 100 values per key. If more metric values are added than are supported by the format, the logger will be flushed to allow for new metric values to be captured.
+Adds a new metric to the current logger context. Multiple metrics using the same key will be appended to an array of values. Multiple metrics cannot have same key and different storage resolution. The Embedded Metric Format supports a maximum of 100 values per key. If more metric values are added than are supported by the format, the logger will be flushed to allow for new metric values to be captured.
 
 Requirements:
 
@@ -67,7 +67,7 @@ Requirements:
 Examples:
 
 ```py
-put_metric("Latency", 200, "Milliseconds")
+put_metric("Latency", 200, "Milliseconds", 60)
 ```
 
 - **set_property**(key: str, value: Any) -> MetricsLogger
