@@ -57,6 +57,8 @@ class MetricsContext(object):
             metric.add_value(value)
         else:
             self.metrics[key] = Metric(value, unit, storageResolution)
+        if key not in self.metricNameAndResolutionMap:
+            self.metricNameAndResolutionMap[key] = storageResolution
 
     def put_dimensions(self, dimension_set: Dict[str, str]) -> None:
         """

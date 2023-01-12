@@ -87,13 +87,12 @@ async def test_cannot_put_metric_with_different_storage_resolution_same_flush(mo
     # arrange
     expected_key = fake.word()
     expected_value = fake.random.randrange(100)
-    metric_storageResolution = 1
 
     logger, sink, env = get_logger_and_sink(mocker)
 
     # act
+    logger.put_metric(expected_key, expected_value, None, 1)
     with pytest.raises(InvalidMetricError):
-        logger.put_metric(expected_key, expected_value, None, metric_storageResolution)
         logger.put_metric(expected_key, expected_value, None, 60)
         await logger.flush()
 
