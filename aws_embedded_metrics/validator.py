@@ -87,10 +87,9 @@ def validate_metric(name: str, value: float, unit: Optional[str], storageResolut
     if storageResolution is None or storageResolution not in StorageResolution:
         raise InvalidMetricError(f"Metric storage Resolution is not valid: {storageResolution}")
 
-    if metricNameAndResolutionMap and name in metricNameAndResolutionMap:
-        if if metricNameAndResolutionMap and name in metricNameAndResolutionMap and metricNameAndResolutionMap.get(name) is not storageResolution : 
-            raise InvalidMetricError(
-                "Resolution for metrics ${name} is already set. A single log event cannot have a metric with two different resolutions.")
+    if metricNameAndResolutionMap and name in metricNameAndResolutionMap and metricNameAndResolutionMap.get(name) is not storageResolution: 
+        raise InvalidMetricError(
+            "Resolution for metrics ${name} is already set. A single log event cannot have a metric with two different resolutions.")
 
 
 def validate_namespace(namespace: str) -> None:
