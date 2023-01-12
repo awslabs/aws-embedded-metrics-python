@@ -2,6 +2,7 @@ import asyncio
 import aws_embedded_metrics
 from aws_embedded_metrics import metric_scope
 from aws_embedded_metrics.config import get_config
+from aws_embedded_metrics.storageResolution import StorageResolution
 from getversion import get_module_version
 import os
 import psutil
@@ -26,7 +27,7 @@ async def app(init, last_run_duration, metrics):
     metrics.set_dimensions({"Runtime": 'Python', "Platform": 'ECS', "Agent": 'CloudWatchAgent', "Version": version})
     metrics.put_metric('Invoke', 1, "Count")
     metrics.put_metric('Duration', last_run_duration, 'Seconds')
-    metrics.put_metric('Memory.RSS', process.memory_info().rss, 'Bytes', 1)
+    metrics.put_metric('Memory.RSS', process.memory_info().rss, 'Bytes', StorageResolution.HIGH)
 
 
 async def main():

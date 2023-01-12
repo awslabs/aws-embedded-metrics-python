@@ -1,5 +1,6 @@
 from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics import metric_scope
+from aws_embedded_metrics.storageResolution import StorageResolution
 import pytest
 import boto3
 import logging
@@ -40,7 +41,7 @@ async def test_end_to_end_tcp_multiple_flushes():
     @metric_scope
     async def do_work(metrics):
         metrics.put_dimensions({"Operation": "Agent"})
-        metrics.put_metric(metric_name, 100, "Milliseconds")
+        metrics.put_metric(metric_name, 100, "Milliseconds", StorageResolution.HIGH)
         metrics.set_property("RequestId", "422b1569-16f6-4a03-b8f0-fe3fd9b100f8")
 
     # act
@@ -70,7 +71,7 @@ async def test_end_to_end_udp():
     @metric_scope
     async def do_work(metrics):
         metrics.put_dimensions({"Operation": "Agent"})
-        metrics.put_metric(metric_name, 100, "Milliseconds")
+        metrics.put_metric(metric_name, 100, "Milliseconds", StorageResolution.HIGH)
         metrics.set_property("RequestId", "422b1569-16f6-4a03-b8f0-fe3fd9b100f8")
 
     # act

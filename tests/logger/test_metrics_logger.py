@@ -3,6 +3,7 @@ from aws_embedded_metrics.logger import metrics_logger
 from aws_embedded_metrics.sinks import Sink
 from aws_embedded_metrics.environment import Environment
 from aws_embedded_metrics.exceptions import InvalidNamespaceError, InvalidMetricError
+from aws_embedded_metrics.storageResolution import StorageResolution
 import aws_embedded_metrics.constants as constants
 import pytest
 from faker import Faker
@@ -58,7 +59,7 @@ async def test_can_put_metric_with_different_storage_resolution_different_flush(
     # arrange
     expected_key = fake.word()
     expected_value = fake.random.randrange(100)
-    metric_storageResolution = 1
+    metric_storageResolution = StorageResolution.HIGH
 
     logger, sink, env = get_logger_and_sink(mocker)
 
@@ -79,7 +80,7 @@ async def test_can_put_metric_with_different_storage_resolution_different_flush(
     context = sink.accept.call_args[0][0]
     assert context.metrics[expected_key].values == [expected_value]
     assert context.metrics[expected_key].unit == "None"
-    assert context.metrics[expected_key].storageResolution == 60
+    assert context.metrics[expected_key].storageResolution == StorageResolution.STANDARD
 
 
 @pytest.mark.asyncio
@@ -91,9 +92,9 @@ async def test_cannot_put_metric_with_different_storage_resolution_same_flush(mo
     logger, sink, env = get_logger_and_sink(mocker)
 
     # act
-    logger.put_metric(expected_key, expected_value, None, 1)
+    logger.put_metric(expected_key, expected_value, None, StorageResolution.HIGH)
     with pytest.raises(InvalidMetricError):
-        logger.put_metric(expected_key, expected_value, None, 60)
+        logger.put_metric(expected_key, expected_value, None, StorageResolution.STANDARD)
         await logger.flush()
 
 

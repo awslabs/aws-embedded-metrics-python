@@ -16,6 +16,7 @@ from aws_embedded_metrics import constants, utils
 from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.logger.metric import Metric
 from aws_embedded_metrics.validator import validate_dimension_set, validate_metric
+from aws_embedded_metrics.storageResolution import StorageResolution
 from typing import List, Dict, Any, Set
 
 
@@ -39,9 +40,9 @@ class MetricsContext(object):
         self.metrics: Dict[str, Metric] = {}
         self.should_use_default_dimensions = True
         self.meta: Dict[str, Any] = {"Timestamp": utils.now()}
-        self.metricNameAndResolutionMap: Dict[str, int] = {}
+        self.metricNameAndResolutionMap: Dict[str, StorageResolution] = {}
 
-    def put_metric(self, key: str, value: float, unit: str = None, storageResolution: int = 60) -> None:
+    def put_metric(self, key: str, value: float, unit: str = None, storageResolution: StorageResolution = StorageResolution.STANDARD) -> None:
         """
         Adds a metric measurement to the context.
         Multiple calls using the same key will be stored as an

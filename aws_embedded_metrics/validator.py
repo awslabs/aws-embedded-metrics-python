@@ -58,7 +58,7 @@ def validate_dimension_set(dimension_set: Dict[str, str]) -> None:
             raise InvalidDimensionError("Dimension name cannot start with ':'")
 
 
-def validate_metric(name: str, value: float, unit: Optional[str], storageResolution: Optional[int], metricNameAndResolutionMap: dict) -> None:  # noqa: E501
+def validate_metric(name: str, value: float, unit: Optional[str], storageResolution: StorageResolution, metricNameAndResolutionMap: dict) -> None:  # noqa: E501
     """
     Validates a metric
 
@@ -90,7 +90,7 @@ def validate_metric(name: str, value: float, unit: Optional[str], storageResolut
     if metricNameAndResolutionMap and name in metricNameAndResolutionMap:
         if metricNameAndResolutionMap.get(name) is not storageResolution:
             raise InvalidMetricError(
-                f"Resolution for metrics ${name} is already set. A single log event cannot have a metric with two different resolutions.")
+                "Resolution for metrics ${name} is already set. A single log event cannot have a metric with two different resolutions.")
 
 
 def validate_namespace(namespace: str) -> None:

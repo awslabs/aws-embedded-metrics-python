@@ -2,6 +2,7 @@ from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.exceptions import DimensionSetExceededError
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.serializers.log_serializer import LogSerializer
+from aws_embedded_metrics.storageResolution import StorageResolution
 from collections import Counter
 from faker import Faker
 import json
@@ -92,7 +93,30 @@ def test_serialize_metrics():
     assert_json_equality(result_json, expected)
 
 
-def test_serialize_metrics_with_storageResolution():
+def test_serialize_metrics_with_Standard_storageResolution():
+    # arrange
+    expected_key = fake.word()
+    expected_value = fake.random.randrange(0, 100)
+
+    expected_metric_definition = {"Name": expected_key, "Unit": "None"}
+
+    expected = {**get_empty_payload()}
+    expected[expected_key] = expected_value
+    expected["_aws"]["CloudWatchMetrics"][0]["Metrics"].append(
+        expected_metric_definition
+    )
+
+    context = get_context()
+    context.put_metric(expected_key, expected_value, "None", StorageResolution.STANDARD)
+
+    # act
+    result_json = serializer.serialize(context)[0]
+
+    # assert
+    assert_json_equality(result_json, expected)
+
+
+def test_serialize_metrics_with_High_storageResolution():
     # arrange
     expected_key = fake.word()
     expected_value = fake.random.randrange(0, 100)
@@ -106,7 +130,7 @@ def test_serialize_metrics_with_storageResolution():
     )
 
     context = get_context()
-    context.put_metric(expected_key, expected_value, "None", 1)
+    context.put_metric(expected_key, expected_value, "None", StorageResolution.HIGH)
 
     # act
     result_json = serializer.serialize(context)[0]

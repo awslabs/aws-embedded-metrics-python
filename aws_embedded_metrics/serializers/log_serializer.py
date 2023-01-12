@@ -18,6 +18,7 @@ from aws_embedded_metrics.constants import (
     MAX_DIMENSION_SET_SIZE, MAX_METRICS_PER_EVENT, MAX_DATAPOINTS_PER_METRIC
 )
 from aws_embedded_metrics.exceptions import DimensionSetExceededError
+from aws_embedded_metrics.storageResolution import StorageResolution
 import json
 from typing import Any, Dict, List
 
@@ -88,8 +89,8 @@ class LogSerializer(Serializer):
                         remaining_data = True
 
                 metricBody = {"Name": metric_name, "Unit": metric.unit}
-                if metric.storageResolution == 1:
-                    metricBody["StorageResolution"] = metric.storageResolution  # type: ignore
+                if metric.storageResolution == StorageResolution.HIGH:
+                    metricBody["StorageResolution"] = metric.storageResolution.value  # type: ignore
                 if not config.disable_metric_extraction:
                     current_body["_aws"]["CloudWatchMetrics"][0]["Metrics"].append(metricBody)
                 num_metrics_in_current_body += 1

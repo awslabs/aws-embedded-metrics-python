@@ -290,7 +290,7 @@ def test_put_metric_uses_none_unit_if_not_provided():
     assert metric.unit == "None"
 
 
-def test_put_metric_uses_60_storage_resolution_if_not_provided():
+def test_put_metric_uses_standard_storage_resolution_if_not_provided():
     # arrange
     context = MetricsContext()
     metric_key = fake.word()
@@ -301,22 +301,22 @@ def test_put_metric_uses_60_storage_resolution_if_not_provided():
 
     # assert
     metric = context.metrics[metric_key]
-    assert metric.storageResolution == 60
+    assert metric.storageResolution == StorageResolution.STANDARD
 
 
 @pytest.mark.parametrize(
     "name, value, unit, storageResolution",
     [
-        ("", 1, "None", 60),
-        (" ", 1, "Seconds", 60),
-        ("a" * (constants.MAX_METRIC_NAME_LENGTH + 1), 1, "None", 60),
-        ("metric", float("inf"), "Count", 60),
-        ("metric", float("-inf"), "Count", 60),
-        ("metric", float("nan"), "Count", 60),
-        ("metric", math.inf, "Seconds", 60),
-        ("metric", -math.inf, "Seconds", 60),
-        ("metric", math.nan, "Seconds", 60),
-        ("metric", 1, "Kilometers/Fahrenheit", 60),
+        ("", 1, "None", StorageResolution.STANDARD),
+        (" ", 1, "Seconds", StorageResolution.STANDARD),
+        ("a" * (constants.MAX_METRIC_NAME_LENGTH + 1), 1, "None", StorageResolution.STANDARD),
+        ("metric", float("inf"), "Count", StorageResolution.STANDARD),
+        ("metric", float("-inf"), "Count", StorageResolution.STANDARD),
+        ("metric", float("nan"), "Count", StorageResolution.STANDARD),
+        ("metric", math.inf, "Seconds", StorageResolution.STANDARD),
+        ("metric", -math.inf, "Seconds", StorageResolution.STANDARD),
+        ("metric", math.nan, "Seconds", StorageResolution.STANDARD),
+        ("metric", 1, "Kilometers/Fahrenheit", StorageResolution.STANDARD),
         ("metric", 1, "Seconds", 2),
         ("metric", 1, "Seconds", None)
     ]
