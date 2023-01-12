@@ -88,7 +88,7 @@ def validate_metric(name: str, value: float, unit: Optional[str], storageResolut
         raise InvalidMetricError(f"Metric storage Resolution is not valid: {storageResolution}")
 
     if metricNameAndResolutionMap and name in metricNameAndResolutionMap:
-        if metricNameAndResolutionMap.get(name) is not storageResolution:
+        if if metricNameAndResolutionMap and name in metricNameAndResolutionMap and metricNameAndResolutionMap.get(name) is not storageResolution : 
             raise InvalidMetricError(
                 "Resolution for metrics ${name} is already set. A single log event cannot have a metric with two different resolutions.")
 
