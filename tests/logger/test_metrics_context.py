@@ -318,6 +318,7 @@ def test_put_metric_uses_standard_storage_resolution_if_not_provided():
         ("metric", math.nan, "Seconds", StorageResolution.STANDARD),
         ("metric", 1, "Kilometers/Fahrenheit", StorageResolution.STANDARD),
         ("metric", 1, "Seconds", 2),
+        ("metric", 1, "Seconds", 0),
         ("metric", 1, "Seconds", None)
     ]
 )
