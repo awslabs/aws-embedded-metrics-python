@@ -10,12 +10,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from aws_embedded_metrics.storage_resolution import StorageResolution
 
 
 class Metric(object):
-    def __init__(self, value: float, unit: str = None):
+    def __init__(self, value: float, unit: str = None, storage_resolution: StorageResolution = StorageResolution.STANDARD):
         self.values = [value]
         self.unit = unit or "None"
+        self.storage_resolution = storage_resolution or StorageResolution.STANDARD
 
     def add_value(self, value: float) -> None:
         self.values.append(value)

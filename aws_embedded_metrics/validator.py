@@ -15,6 +15,7 @@ import math
 import re
 from typing import Dict, Optional
 from aws_embedded_metrics.unit import Unit
+from aws_embedded_metrics.storage_resolution import StorageResolution
 from aws_embedded_metrics.exceptions import DimensionSetExceededError, InvalidDimensionError, InvalidMetricError, InvalidNamespaceError
 import aws_embedded_metrics.constants as constants
 
@@ -57,7 +58,11 @@ def validate_dimension_set(dimension_set: Dict[str, str]) -> None:
             raise InvalidDimensionError("Dimension name cannot start with ':'")
 
 
-def validate_metric(name: str, value: float, unit: Optional[str]) -> None:
+def validate_metric(name: str,
+                    value: float,
+                    unit: Optional[str],
+                    storage_resolution: StorageResolution,
+                    metric_name_and_resolution_map: dict) -> None:
     """
     Validates a metric
 
@@ -65,6 +70,8 @@ def validate_metric(name: str, value: float, unit: Optional[str]) -> None:
             name (str): The name of the metric
             value (float): The value of the metric
             unit (Optional[str]): The unit of the metric
+            storage_resolution (Optional[int]): The storage resolution of metric
+            metric_name_and_resolution_map (dict): The map used for validating metric
 
         Raises:
             InvalidMetricError: If the metric is invalid
@@ -80,6 +87,13 @@ def validate_metric(name: str, value: float, unit: Optional[str]) -> None:
 
     if unit is not None and unit not in Unit:
         raise InvalidMetricError(f"Metric unit is not valid: {unit}")
+
+    if storage_resolution is None or storage_resolution not in StorageResolution:
+        raise InvalidMetricError(f"Metric storage resolution is not valid: {storage_resolution}")
+
+    if name in metric_name_and_resolution_map and metric_name_and_resolution_map.get(name) is not storage_resolution:
+        raise InvalidMetricError(
+            f"Resolution for metrics {name} is already set. A single log event cannot have a metric with two different resolutions.")
 
 
 def validate_namespace(namespace: str) -> None:

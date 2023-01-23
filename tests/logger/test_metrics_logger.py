@@ -2,7 +2,8 @@ from aws_embedded_metrics import config
 from aws_embedded_metrics.logger import metrics_logger
 from aws_embedded_metrics.sinks import Sink
 from aws_embedded_metrics.environment import Environment
-from aws_embedded_metrics.exceptions import InvalidNamespaceError
+from aws_embedded_metrics.exceptions import InvalidNamespaceError, InvalidMetricError
+from aws_embedded_metrics.storage_resolution import StorageResolution
 import aws_embedded_metrics.constants as constants
 import pytest
 from faker import Faker
@@ -51,6 +52,49 @@ async def test_can_put_metric(mocker):
     context = get_flushed_context(sink)
     assert context.metrics[expected_key].values == [expected_value]
     assert context.metrics[expected_key].unit == "None"
+
+
+@pytest.mark.asyncio
+async def test_can_put_metric_with_different_storage_resolution_different_flush(mocker):
+    # arrange
+    expected_key = fake.word()
+    expected_value = fake.random.randrange(100)
+
+    logger, sink, env = get_logger_and_sink(mocker)
+
+    # act
+    logger.put_metric(expected_key, expected_value, None, StorageResolution.HIGH)
+    await logger.flush()
+
+    # assert
+    context = sink.accept.call_args[0][0]
+    assert context.metrics[expected_key].values == [expected_value]
+    assert context.metrics[expected_key].unit == "None"
+    assert context.metrics[expected_key].storage_resolution == StorageResolution.HIGH
+
+    expected_key = fake.word()
+    expected_value = fake.random.randrange(100)
+    logger.put_metric(expected_key, expected_value, None)
+    await logger.flush()
+    context = sink.accept.call_args[0][0]
+    assert context.metrics[expected_key].values == [expected_value]
+    assert context.metrics[expected_key].unit == "None"
+    assert context.metrics[expected_key].storage_resolution == StorageResolution.STANDARD
+
+
+@pytest.mark.asyncio
+async def test_cannot_put_metric_with_different_storage_resolution_same_flush(mocker):
+    # arrange
+    expected_key = fake.word()
+    expected_value = fake.random.randrange(100)
+
+    logger, sink, env = get_logger_and_sink(mocker)
+
+    # act
+    logger.put_metric(expected_key, expected_value, None, StorageResolution.HIGH)
+    with pytest.raises(InvalidMetricError):
+        logger.put_metric(expected_key, expected_value, None, StorageResolution.STANDARD)
+        await logger.flush()
 
 
 @pytest.mark.asyncio

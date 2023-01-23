@@ -39,7 +39,8 @@ from aws_embedded_metrics import metric_scope
 @metric_scope
 def my_handler(metrics):
     metrics.put_dimensions({"Foo": "Bar"})
-    metrics.put_metric("ProcessingLatency", 100, "Milliseconds")
+    metrics.put_metric("ProcessingLatency", 100, "Milliseconds", StorageResolution.STANDARD)
+    metrics.put_metric("Memory.HeapUsed", 1600424.0, "Bytes", StorageResolution.HIGH)
     metrics.set_property("AccountId", "123456789012")
     metrics.set_property("RequestId", "422b1569-16f6-4a03")
     metrics.set_property("DeviceId", "61270781-c6ac-46f1")
@@ -53,9 +54,9 @@ def my_handler(metrics):
 
 The `MetricsLogger` is the interface you will use to publish embedded metrics.
 
-- **put_metric**(key: str, value: float, unit: str = "None") -> MetricsLogger
+- **put_metric**(key: str, value: float, unit: str = "None", storage_resolution: int = 60) -> MetricsLogger
 
-Adds a new metric to the current logger context. Multiple metrics using the same key will be appended to an array of values. The Embedded Metric Format supports a maximum of 100 values per key. If more metric values are added than are supported by the format, the logger will be flushed to allow for new metric values to be captured.
+Adds a new metric to the current logger context. Multiple metrics using the same key will be appended to an array of values. Multiple metrics cannot have same key and different storage resolution. The Embedded Metric Format supports a maximum of 100 values per key. If more metric values are added than are supported by the format, the logger will be flushed to allow for new metric values to be captured.
 
 Requirements:
 
@@ -64,10 +65,18 @@ Requirements:
 - Values must be in the range of 8.515920e-109 to 1.174271e+108. In addition, special values (for example, NaN, +Infinity, -Infinity) are not supported.
 - Metrics must meet CloudWatch Metrics requirements, otherwise a `InvalidMetricError` will be thrown. See [MetricDatum](https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_MetricDatum.html) for valid values.
 
+- ##### Storage Resolution
+An OPTIONAL value representing the storage resolution for the corresponding metric. Setting this to `High` specifies this metric as a high-resolution metric, so that CloudWatch stores the metric with sub-minute resolution down to one second. Setting this to `Standard` specifies this metric as a standard-resolution metric, which CloudWatch stores at 1-minute resolution. If a value is not provided, then a default value of `Standard` is assumed. See [Cloud Watch High-Resolution metrics](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/publishingMetrics.html#high-resolution-metrics)
+
 Examples:
 
 ```py
+# Standard Resolution example
 put_metric("Latency", 200, "Milliseconds")
+put_metric("Latency", 201, "Milliseconds", StorageResolution.STANDARD)
+
+# High Resolution example
+put_metric("Memory.HeapUsed", 1600424.0, "Bytes", StorageResolution.HIGH)
 ```
 
 - **set_property**(key: str, value: Any) -> MetricsLogger
