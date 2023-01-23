@@ -76,7 +76,7 @@ put_metric("Latency", 200, "Milliseconds")
 put_metric("Latency", 201, "Milliseconds", StorageResolution.STANDARD)
 
 # High Resolution example
-put_metric("Memory.HeapUsed", 1600424.0, Unit.BYTES, StorageResolution.HIGH)
+put_metric("Memory.HeapUsed", 1600424.0, "Bytes", StorageResolution.HIGH)
 ```
 
 - **set_property**(key: str, value: Any) -> MetricsLogger
