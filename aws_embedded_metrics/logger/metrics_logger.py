@@ -15,7 +15,7 @@ from aws_embedded_metrics.environment import Environment
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.validator import validate_namespace
 from aws_embedded_metrics.config import get_config
-from aws_embedded_metrics.storageResolution import StorageResolution
+from aws_embedded_metrics.storage_resolution import StorageResolution
 from typing import Any, Awaitable, Callable, Dict, Tuple
 import sys
 import traceback
@@ -80,9 +80,9 @@ class MetricsLogger:
         return self
 
     def put_metric(
-        self, key: str, value: float, unit: str = "None", storageResolution: StorageResolution = StorageResolution.STANDARD
+        self, key: str, value: float, unit: str = "None", storage_resolution: StorageResolution = StorageResolution.STANDARD
     ) -> "MetricsLogger":
-        self.context.put_metric(key, value, unit, storageResolution)
+        self.context.put_metric(key, value, unit, storage_resolution)
         return self
 
     def add_stack_trace(self, key: str, details: Any = None, exc_info: Tuple = None) -> "MetricsLogger":

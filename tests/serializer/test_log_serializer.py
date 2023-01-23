@@ -2,7 +2,7 @@ from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.exceptions import DimensionSetExceededError
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.serializers.log_serializer import LogSerializer
-from aws_embedded_metrics.storageResolution import StorageResolution
+from aws_embedded_metrics.storage_resolution import StorageResolution
 from collections import Counter
 from faker import Faker
 import json
@@ -93,7 +93,7 @@ def test_serialize_metrics():
     assert_json_equality(result_json, expected)
 
 
-def test_serialize_metrics_with_Standard_storageResolution():
+def test_serialize_metrics_with_standard_storage_resolution():
     # arrange
     expected_key = fake.word()
     expected_value = fake.random.randrange(0, 100)
@@ -116,7 +116,7 @@ def test_serialize_metrics_with_Standard_storageResolution():
     assert_json_equality(result_json, expected)
 
 
-def test_serialize_metrics_with_High_storageResolution():
+def test_serialize_metrics_with_high_storage_resolution():
     # arrange
     expected_key = fake.word()
     expected_value = fake.random.randrange(0, 100)

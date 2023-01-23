@@ -3,7 +3,7 @@ import math
 import random
 from aws_embedded_metrics import constants
 from aws_embedded_metrics.unit import Unit
-from aws_embedded_metrics.storageResolution import StorageResolution
+from aws_embedded_metrics.storage_resolution import StorageResolution
 from aws_embedded_metrics import config
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.constants import DEFAULT_NAMESPACE
@@ -264,16 +264,16 @@ def test_put_metric_adds_metrics():
     metric_key = fake.word()
     metric_value = fake.random.random()
     metric_unit = random.choice(list(Unit)).value
-    metric_storageResolution = random.choice(list(StorageResolution)).value
+    metric_storage_resolution = random.choice(list(StorageResolution)).value
 
     # act
-    context.put_metric(metric_key, metric_value, metric_unit, metric_storageResolution)
+    context.put_metric(metric_key, metric_value, metric_unit, metric_storage_resolution)
 
     # assert
     metric = context.metrics[metric_key]
     assert metric.unit == metric_unit
     assert metric.values == [metric_value]
-    assert metric.storageResolution == metric_storageResolution
+    assert metric.storage_resolution == metric_storage_resolution
 
 
 def test_put_metric_uses_none_unit_if_not_provided():
@@ -301,11 +301,11 @@ def test_put_metric_uses_standard_storage_resolution_if_not_provided():
 
     # assert
     metric = context.metrics[metric_key]
-    assert metric.storageResolution == StorageResolution.STANDARD
+    assert metric.storage_resolution == StorageResolution.STANDARD
 
 
 @pytest.mark.parametrize(
-    "name, value, unit, storageResolution",
+    "name, value, unit, storage_resolution",
     [
         ("", 1, "None", StorageResolution.STANDARD),
         (" ", 1, "Seconds", StorageResolution.STANDARD),
@@ -322,11 +322,11 @@ def test_put_metric_uses_standard_storage_resolution_if_not_provided():
         ("metric", 1, "Seconds", None)
     ]
 )
-def test_put_invalid_metric_raises_exception(name, value, unit, storageResolution):
+def test_put_invalid_metric_raises_exception(name, value, unit, storage_resolution):
     context = MetricsContext()
 
     with pytest.raises(InvalidMetricError):
-        context.put_metric(name, value, unit, storageResolution)
+        context.put_metric(name, value, unit, storage_resolution)
 
 
 def test_create_copy_with_context_creates_new_instance():

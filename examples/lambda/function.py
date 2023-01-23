@@ -1,5 +1,5 @@
 from aws_embedded_metrics import metric_scope
-from aws_embedded_metrics.storageResolution import StorageResolution
+from aws_embedded_metrics.storage_resolution import StorageResolution
 
 
 @metric_scope

@@ -2,7 +2,7 @@ import asyncio
 import aws_embedded_metrics
 from aws_embedded_metrics import metric_scope
 from aws_embedded_metrics.config import get_config
-from aws_embedded_metrics.storageResolution import StorageResolution
+from aws_embedded_metrics.storage_resolution import StorageResolution
 from getversion import get_module_version
 import os
 import psutil
