@@ -7,7 +7,7 @@
 #   export AWS_SECRET_ACCESS_KEY=
 #   export AWS_REGION=us-west-2
 #   ./start-agent.sh
-
+echo "[!] Starting agent"
 rootdir=$(git rev-parse --show-toplevel)
 rootdir=${rootdir:-$(pwd)} # in case we are not in a git repository (Code Pipelines)
 
