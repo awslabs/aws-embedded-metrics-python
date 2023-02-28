@@ -35,6 +35,7 @@ To get a metric logger, you can decorate your function with a `metric_scope`:
 
 ```py
 from aws_embedded_metrics import metric_scope
+from aws_embedded_metrics.storage_resolution import StorageResolution
 
 @metric_scope
 def my_handler(metrics):
