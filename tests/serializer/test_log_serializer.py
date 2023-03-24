@@ -248,6 +248,33 @@ def test_serialize_with_more_than_100_metrics_and_datapoints():
     assert metric_results == expected_results
 
 
+def test_serialize_no_duplication_bug():
+    """
+    A bug existed where metrics with lots of values have to be broken up
+    but single value metrics got duplicated across each section.
+    This test verifies the fix to ensure no duplication.
+    """
+    context = get_context()
+    single_expected_result = 1
+    single_found_result = 0
+
+    # create a metric with a single value
+    single_key = "Metric-single"
+    context.put_metric(single_key, single_expected_result)
+    # add a lot of another metric so the log batches must be broken up
+    for i in range(1000):
+        context.put_metric("Metric-many", 0)
+
+    results = serializer.serialize(context)
+
+    # count up all values for the single metric to ensure no duplicates
+    for batch in results:
+        for metric_key, value in json.loads(batch).items():
+            if metric_key == single_key:
+                single_found_result += value
+    assert single_expected_result == single_found_result
+
+
 def test_serialize_with_multiple_metrics():
     # arrange
     metrics = 2

@@ -67,15 +67,19 @@ class LogSerializer(Serializer):
 
         # Track batch number to know where to slice metric data
         i = 0
-
+        complete_metrics = set()
         while remaining_data:
             remaining_data = False
             current_body = create_body()
 
             for metric_name, metric in context.metrics.items():
+                # ensure we don't add duplicates of metrics we already completed
+                if metric_name in complete_metrics:
+                    continue
 
                 if len(metric.values) == 1:
                     current_body[metric_name] = metric.values[0]
+                    complete_metrics.add(metric_name)
                 else:
                     # Slice metric data as each batch cannot contain more than
                     # MAX_DATAPOINTS_PER_METRIC entries for a given metric
@@ -87,6 +91,8 @@ class LogSerializer(Serializer):
                     # of the metric value list
                     if len(metric.values) > end_index:
                         remaining_data = True
+                    else:
+                        complete_metrics.add(metric_name)
 
                 metric_body = {"Name": metric_name, "Unit": metric.unit}
                 if metric.storage_resolution == StorageResolution.HIGH:
