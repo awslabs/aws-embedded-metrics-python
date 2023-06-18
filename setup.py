@@ -22,6 +22,9 @@ setup(
         "License :: OSI Approved :: Apache Software License",
     ],
     packages=find_packages(exclude=["tests*"]),
+    package_data={
+        "aws_embedded_metrics": ["py.typed"],
+    },
     include_package_data=True,
     install_requires=["aiohttp"],
     test_suite="tests",
