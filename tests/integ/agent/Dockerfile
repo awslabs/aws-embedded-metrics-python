@@ -1,4 +1,4 @@
-FROM debian:latest
+FROM debian:bullseye
 
 RUN apt-get update &&  \
     apt-get install -y ca-certificates curl && \
