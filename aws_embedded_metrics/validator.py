@@ -16,8 +16,10 @@ import re
 from typing import Dict, Optional
 from aws_embedded_metrics.unit import Unit
 from aws_embedded_metrics.storage_resolution import StorageResolution
-from aws_embedded_metrics.exceptions import DimensionSetExceededError, InvalidDimensionError, InvalidMetricError, InvalidNamespaceError
+from aws_embedded_metrics.exceptions import DimensionSetExceededError, InvalidDimensionError, InvalidMetricError, InvalidNamespaceError, InvalidTimestampError
 import aws_embedded_metrics.constants as constants
+import datetime
+from aws_embedded_metrics import utils, constants
 
 
 def validate_dimension_set(dimension_set: Dict[str, str]) -> None:
@@ -114,3 +116,32 @@ def validate_namespace(namespace: str) -> None:
 
     if not re.match(constants.VALID_NAMESPACE_REGEX, namespace):
         raise InvalidNamespaceError(f"Namespace contains invalid characters: {namespace}")
+
+
+def validate_timestamp(timestamp: datetime) -> None:
+    """
+    Validates a timestamp
+
+    * @see <a
+    *     href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#about_timestamp">CloudWatch
+    *     Timestamp</a>
+
+        Parameters:
+            timestamp (datetime): datetime to validate
+
+        Raises:
+            InvalidTimestampError: if datetime is invalid
+    """
+    if (timestamp is None):
+        raise InvalidTimestampError(f"Timestamp cannot be none")
+
+    given_time_in_milliseconds = utils.convert_to_milliseconds(timestamp)
+    current_time_in_milliseconds = utils.convert_to_milliseconds(datetime.datetime.now())
+
+    if (given_time_in_milliseconds <= (current_time_in_milliseconds - constants.MAX_TIMESTAMP_PAST_AGE_SECONDS)):
+        raise InvalidTimestampError(
+            f"Timestamp {str(timestamp)} must not be older than {str(constants.MAX_TIMESTAMP_PAST_AGE_SECONDS)} milliseconds")
+
+    if (given_time_in_milliseconds >= (current_time_in_milliseconds + constants.MAX_TIMESTAMP_FUTURE_AGE_SECONDS)):
+        raise InvalidTimestampError(
+            f"Timestamp {str(timestamp)} must not be newer than {str(constants.MAX_TIMESTAMP_FUTURE_AGE_SECONDS)} milliseconds")

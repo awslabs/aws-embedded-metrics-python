@@ -1,13 +1,14 @@
+import datetime
 import pytest
 import math
 import random
-from aws_embedded_metrics import constants
+from aws_embedded_metrics import constants, utils
 from aws_embedded_metrics.unit import Unit
 from aws_embedded_metrics.storage_resolution import StorageResolution
 from aws_embedded_metrics import config
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
-from aws_embedded_metrics.constants import DEFAULT_NAMESPACE
-from aws_embedded_metrics.exceptions import DimensionSetExceededError, InvalidDimensionError, InvalidMetricError
+from aws_embedded_metrics.constants import DEFAULT_NAMESPACE, MAX_TIMESTAMP_FUTURE_AGE_SECONDS, MAX_TIMESTAMP_PAST_AGE_SECONDS
+from aws_embedded_metrics.exceptions import DimensionSetExceededError, InvalidDimensionError, InvalidMetricError, InvalidTimestampError
 from importlib import reload
 from faker import Faker
 
@@ -467,3 +468,35 @@ def generate_dimension_set(dimensions_to_add):
         dimension_set[f"{i}"] = fake.word()
 
     return dimension_set
+
+
+def test_set_timestamp_verify_timestamp():
+    context = MetricsContext()
+    context.put_metric("TestMetric", 0)
+
+    now = datetime.datetime.now()
+    context.set_timestamp(now)
+
+    assert context.meta[constants.TIMESTAMP] == utils.convert_to_milliseconds(now)
+
+
+def test_set_timestamp_null_raise_exception():
+    context = MetricsContext()
+    past_date = None
+    with pytest.raises(InvalidTimestampError):
+        context.set_timestamp(past_date)
+
+
+def test_set_timestamp_past_14_days_raise_exception():
+    context = MetricsContext()
+    past_date = datetime.datetime.now() - datetime.timedelta(milliseconds=MAX_TIMESTAMP_PAST_AGE_SECONDS + 1)
+    with pytest.raises(InvalidTimestampError):
+        context.set_timestamp(past_date)
+
+
+def test_set_timestamp_future_2_hours_raise_exception():
+    context = MetricsContext()
+    future_date = datetime.datetime.now() + datetime.timedelta(milliseconds=MAX_TIMESTAMP_FUTURE_AGE_SECONDS + 1)
+
+    with pytest.raises(InvalidTimestampError):
+        context.set_timestamp(future_date)
