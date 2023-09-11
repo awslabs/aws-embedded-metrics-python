@@ -19,7 +19,7 @@ from aws_embedded_metrics.storage_resolution import StorageResolution
 from aws_embedded_metrics.exceptions import DimensionSetExceededError, InvalidDimensionError, InvalidMetricError, InvalidNamespaceError
 from aws_embedded_metrics.exceptions import InvalidTimestampError
 import aws_embedded_metrics.constants as constants
-import datetime
+from datetime import datetime
 from aws_embedded_metrics import utils, constants
 
 
@@ -137,10 +137,10 @@ def validate_timestamp(timestamp: datetime) -> None:
     timestamp_past_age_error_message = f"Timestamp {str(timestamp)} must not be older than {str(constants.MAX_TIMESTAMP_PAST_AGE)} milliseconds"
     timestamp_future_age_error_message = f"Timestamp {str(timestamp)} must not be newer than {str(constants.MAX_TIMESTAMP_FUTURE_AGE)} milliseconds"
 
-    if timestamp == datetime.datetime.min:
+    if timestamp == datetime.min:
         raise InvalidTimestampError(timestamp_past_age_error_message)
 
-    if timestamp == datetime.datetime.max:
+    if timestamp == datetime.max:
         raise InvalidTimestampError(timestamp_future_age_error_message)
 
     given_time_in_milliseconds = utils.convert_to_milliseconds(timestamp)

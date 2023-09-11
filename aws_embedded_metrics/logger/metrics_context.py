@@ -12,7 +12,7 @@
 # limitations under the License.
 
 
-import datetime
+from datetime import datetime
 from aws_embedded_metrics import constants, utils, validator
 from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.logger.metric import Metric
@@ -178,7 +178,7 @@ class MetricsContext(object):
     def empty() -> "MetricsContext":
         return MetricsContext()
 
-    def set_timestamp(self, timestamp: datetime.datetime) -> None:
+    def set_timestamp(self, timestamp: datetime) -> None:
         """
         Update the timestamp field in the metadata.
 
