@@ -178,9 +178,11 @@ class MetricsContext(object):
     def empty() -> "MetricsContext":
         return MetricsContext()
 
-    def set_timestamp(self, timestamp: datetime) -> None:
+    def set_timestamp(self, timestamp: datetime.datetime) -> None:
         """
         Update the timestamp field in the metadata.
+
+        For more information, refer to (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#about_timestamp).
 
         Parameters:
             timestamp (datetime): The timestamp value to be set.

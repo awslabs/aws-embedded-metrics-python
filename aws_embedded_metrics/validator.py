@@ -16,7 +16,8 @@ import re
 from typing import Dict, Optional
 from aws_embedded_metrics.unit import Unit
 from aws_embedded_metrics.storage_resolution import StorageResolution
-from aws_embedded_metrics.exceptions import DimensionSetExceededError, InvalidDimensionError, InvalidMetricError, InvalidNamespaceError, InvalidTimestampError
+from aws_embedded_metrics.exceptions import DimensionSetExceededError, InvalidDimensionError, InvalidMetricError, InvalidNamespaceError
+from aws_embedded_metrics.exceptions import InvalidTimestampError
 import aws_embedded_metrics.constants as constants
 import datetime
 from aws_embedded_metrics import utils, constants
@@ -122,7 +123,7 @@ def validate_timestamp(timestamp: datetime) -> None:
     """
     Validates a given timestamp based on CloudWatch Timestamp guidelines.
 
-    For more information, refer to [CloudWatch Timestamp](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#about_timestamp).
+    For more information, refer to (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#about_timestamp).
 
     Parameters:
         timestamp (datetime): Datetime object representing the timestamp to validate.
@@ -130,16 +131,23 @@ def validate_timestamp(timestamp: datetime) -> None:
     Raises:
         InvalidTimestampError: If the timestamp is either None, too old, or too far in the future.
     """
-    if (timestamp is None):
-        raise InvalidTimestampError(f"Timestamp cannot be none")
+    if not timestamp:
+        raise InvalidTimestampError("Timestamp must be a valid datetime object")
+
+    timestamp_past_age_error_message = f"Timestamp {str(timestamp)} must not be older than {str(constants.MAX_TIMESTAMP_PAST_AGE)} milliseconds"
+    timestamp_future_age_error_message = f"Timestamp {str(timestamp)} must not be newer than {str(constants.MAX_TIMESTAMP_FUTURE_AGE)} milliseconds"
+
+    if timestamp == datetime.datetime.min:
+        raise InvalidTimestampError(timestamp_past_age_error_message)
+
+    if timestamp == datetime.datetime.max:
+        raise InvalidTimestampError(timestamp_future_age_error_message)
 
     given_time_in_milliseconds = utils.convert_to_milliseconds(timestamp)
-    current_time_in_milliseconds = utils.convert_to_milliseconds(datetime.datetime.now())
+    current_time_in_milliseconds = utils.now()
 
-    if (given_time_in_milliseconds <= (current_time_in_milliseconds - constants.MAX_TIMESTAMP_PAST_AGE_SECONDS)):
-        raise InvalidTimestampError(
-            f"Timestamp {str(timestamp)} must not be older than {str(constants.MAX_TIMESTAMP_PAST_AGE_SECONDS)} milliseconds")
+    if given_time_in_milliseconds < (current_time_in_milliseconds - constants.MAX_TIMESTAMP_PAST_AGE):
+        raise InvalidTimestampError(timestamp_past_age_error_message)
 
-    if (given_time_in_milliseconds >= (current_time_in_milliseconds + constants.MAX_TIMESTAMP_FUTURE_AGE_SECONDS)):
-        raise InvalidTimestampError(
-            f"Timestamp {str(timestamp)} must not be newer than {str(constants.MAX_TIMESTAMP_FUTURE_AGE_SECONDS)} milliseconds")
+    if given_time_in_milliseconds > (current_time_in_milliseconds + constants.MAX_TIMESTAMP_FUTURE_AGE):
+        raise InvalidTimestampError(timestamp_future_age_error_message)
