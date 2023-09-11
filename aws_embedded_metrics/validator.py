@@ -120,17 +120,15 @@ def validate_namespace(namespace: str) -> None:
 
 def validate_timestamp(timestamp: datetime) -> None:
     """
-    Validates a timestamp
+    Validates a given timestamp based on CloudWatch Timestamp guidelines.
 
-    * @see <a
-    *     href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#about_timestamp">CloudWatch
-    *     Timestamp</a>
+    For more information, refer to [CloudWatch Timestamp](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#about_timestamp).
 
-        Parameters:
-            timestamp (datetime): datetime to validate
+    Parameters:
+        timestamp (datetime): Datetime object representing the timestamp to validate.
 
-        Raises:
-            InvalidTimestampError: if datetime is invalid
+    Raises:
+        InvalidTimestampError: If the timestamp is either None, too old, or too far in the future.
     """
     if (timestamp is None):
         raise InvalidTimestampError(f"Timestamp cannot be none")
