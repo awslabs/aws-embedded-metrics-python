@@ -13,8 +13,7 @@
 
 
 import datetime
-from aws_embedded_metrics import constants, utils
-from aws_embedded_metrics import validator
+from aws_embedded_metrics import constants, utils, validator
 from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.logger.metric import Metric
 from aws_embedded_metrics.validator import validate_dimension_set, validate_metric
