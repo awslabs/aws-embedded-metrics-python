@@ -180,17 +180,14 @@ class MetricsContext(object):
 
     def set_timestamp(self, timestamp: datetime) -> None:
         """
-    Update timestamp field in the metadata
-
-    * @see <a
-    *     href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#about_timestamp">CloudWatch
-    *     Timestamp</a>
+        Update the timestamp field in the metadata.
 
         Parameters:
-            timestamp (datetime): timestamp value to be set
+            timestamp (datetime): The timestamp value to be set.
 
         Raises:
-            InvalidTimestampError: if timestamp is invalid
-    """
+            InvalidTimestampError: If the provided timestamp is invalid.
+
+        """
         validator.validate_timestamp(timestamp)
         self.meta[constants.TIMESTAMP] = utils.convert_to_milliseconds(timestamp)
