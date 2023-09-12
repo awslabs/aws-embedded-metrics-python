@@ -1,6 +1,6 @@
 from faker import Faker
 from importlib import reload
-import datetime
+from datetime import datetime
 import pytest
 import math
 import random
