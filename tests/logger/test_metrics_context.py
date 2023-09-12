@@ -490,7 +490,7 @@ def test_set_timestamp_sets_timestamp(timestamp: datetime.datetime):
         datetime.datetime.now() + datetime.timedelta(milliseconds=MAX_TIMESTAMP_FUTURE_AGE + 5000)
     ]
 )
-def test_set_timestamp_raise_exception(timestamp: datetime.datetime):
+def test_set_invalid_timestamp_raises_exception(timestamp: datetime):
     context = MetricsContext()
 
     with pytest.raises(InvalidTimestampError):
