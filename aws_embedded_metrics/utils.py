@@ -17,4 +17,7 @@ def now() -> int: return int(round(time.time() * 1000))
 
 
 def convert_to_milliseconds(datetime: datetime) -> int:
+    if datetime == datetime.min:
+        return 0
+
     return int(round(datetime.timestamp() * 1000))

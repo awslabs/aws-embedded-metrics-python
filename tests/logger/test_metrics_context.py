@@ -1,6 +1,6 @@
 from faker import Faker
 from importlib import reload
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytest
 import math
 import random
@@ -463,12 +463,12 @@ def test_cannot_put_more_than_30_dimensions():
 @pytest.mark.parametrize(
     "timestamp",
     [
-        datetime.datetime.now(),
-        datetime.datetime.now() - datetime.timedelta(milliseconds=MAX_TIMESTAMP_PAST_AGE - 5000),
-        datetime.datetime.now() + datetime.timedelta(milliseconds=MAX_TIMESTAMP_FUTURE_AGE - 5000)
+        datetime.now(),
+        datetime.now() - timedelta(milliseconds=MAX_TIMESTAMP_PAST_AGE - 5000),
+        datetime.now() + timedelta(milliseconds=MAX_TIMESTAMP_FUTURE_AGE - 5000)
     ]
 )
-def test_set_timestamp_sets_timestamp(timestamp: datetime.datetime):
+def test_set_valid_timestamp_verify_timestamp(timestamp: datetime):
     context = MetricsContext()
 
     context.set_timestamp(timestamp)
@@ -480,14 +480,15 @@ def test_set_timestamp_sets_timestamp(timestamp: datetime.datetime):
     "timestamp",
     [
         None,
-        datetime.datetime.min,
-        datetime.datetime.max,
-        datetime.datetime(1, 1, 1, 0, 0, 0, 0, None),
-        datetime.datetime(1, 1, 1),
-        datetime.datetime(1, 1, 1, 0, 0),
-        datetime.datetime(9999, 12, 31, 23, 59, 59, 999999),
-        datetime.datetime.now() - datetime.timedelta(milliseconds=MAX_TIMESTAMP_PAST_AGE + 5000),
-        datetime.datetime.now() + datetime.timedelta(milliseconds=MAX_TIMESTAMP_FUTURE_AGE + 5000)
+        datetime.min,
+        datetime(1970, 1, 1, 0, 0, 0),
+        datetime.max,
+        datetime(9999, 12, 31, 23, 59, 59, 999999),
+        datetime(1, 1, 1, 0, 0, 0, 0, None),
+        datetime(1, 1, 1),
+        datetime(1, 1, 1, 0, 0),
+        datetime.now() - timedelta(milliseconds=MAX_TIMESTAMP_PAST_AGE + 1),
+        datetime.now() + timedelta(milliseconds=MAX_TIMESTAMP_FUTURE_AGE + 5000)
     ]
 )
 def test_set_invalid_timestamp_raises_exception(timestamp: datetime):

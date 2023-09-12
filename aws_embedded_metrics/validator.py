@@ -135,20 +135,13 @@ def validate_timestamp(timestamp: datetime) -> None:
     if not timestamp:
         raise InvalidTimestampError("Timestamp must be a valid datetime object")
 
-    timestamp_past_age_error_message = f"Timestamp {str(timestamp)} must not be older than {str(constants.MAX_TIMESTAMP_PAST_AGE)} milliseconds"
-    timestamp_future_age_error_message = f"Timestamp {str(timestamp)} must not be newer than {str(constants.MAX_TIMESTAMP_FUTURE_AGE)} milliseconds"
-
-    if timestamp == datetime.min:
-        raise InvalidTimestampError(timestamp_past_age_error_message)
-
-    if timestamp == datetime.max:
-        raise InvalidTimestampError(timestamp_future_age_error_message)
-
     given_time_in_milliseconds = utils.convert_to_milliseconds(timestamp)
     current_time_in_milliseconds = utils.now()
 
     if given_time_in_milliseconds < (current_time_in_milliseconds - constants.MAX_TIMESTAMP_PAST_AGE):
-        raise InvalidTimestampError(timestamp_past_age_error_message)
+        raise InvalidTimestampError(
+            f"Timestamp {str(timestamp)} must not be older than {int(constants.MAX_TIMESTAMP_PAST_AGE/(24 * 60 * 60 * 1000))} days")
 
     if given_time_in_milliseconds > (current_time_in_milliseconds + constants.MAX_TIMESTAMP_FUTURE_AGE):
-        raise InvalidTimestampError(timestamp_future_age_error_message)
+        raise InvalidTimestampError(
+            f"Timestamp {str(timestamp)} must not be newer than {int(constants.MAX_TIMESTAMP_FUTURE_AGE/(60 * 60 * 1000))} hours")
