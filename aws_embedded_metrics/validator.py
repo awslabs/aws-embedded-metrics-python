@@ -122,8 +122,8 @@ def validate_timestamp(timestamp: datetime) -> None:
     """
     Validates a given timestamp based on CloudWatch Timestamp guidelines.
 
-    Timestamp must meet CloudWatch requirements, otherwise a InvalidTimestampError will be thrown. 
-    See [Timestamps](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#about_timestamp) 
+    Timestamp must meet CloudWatch requirements, otherwise a InvalidTimestampError will be thrown.
+    See [Timestamps](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#about_timestamp)
     for valid values.
 
     Parameters:
