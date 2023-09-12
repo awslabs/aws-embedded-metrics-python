@@ -182,7 +182,9 @@ class MetricsContext(object):
         """
         Update the timestamp field in the metadata.
 
-        Timestamp must meet CloudWatch requirements, otherwise a InvalidTimestampError will be thrown. See [Timestamps](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#about_timestamp) for valid values.
+        Timestamp must meet CloudWatch requirements, otherwise a InvalidTimestampError will be thrown. 
+        See [Timestamps](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#about_timestamp) 
+        for valid values.
 
         Parameters:
             timestamp (datetime): The timestamp value to be set.
