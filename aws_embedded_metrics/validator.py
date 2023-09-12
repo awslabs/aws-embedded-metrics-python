@@ -18,9 +18,8 @@ from aws_embedded_metrics.unit import Unit
 from aws_embedded_metrics.storage_resolution import StorageResolution
 from aws_embedded_metrics.exceptions import DimensionSetExceededError, InvalidDimensionError, InvalidMetricError, InvalidNamespaceError
 from aws_embedded_metrics.exceptions import InvalidTimestampError
-import aws_embedded_metrics.constants as constants
 from datetime import datetime
-from aws_embedded_metrics import utils, constants
+from aws_embedded_metrics import constants, utils
 
 
 def validate_dimension_set(dimension_set: Dict[str, str]) -> None:
