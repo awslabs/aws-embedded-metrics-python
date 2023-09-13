@@ -12,4 +12,12 @@
 # limitations under the License.
 
 import time
+from datetime import datetime
 def now() -> int: return int(round(time.time() * 1000))
+
+
+def convert_to_milliseconds(dt: datetime) -> int:
+    if dt == datetime.min:
+        return 0
+
+    return int(round(dt.timestamp() * 1000))

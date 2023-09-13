@@ -12,7 +12,8 @@
 # limitations under the License.
 
 
-from aws_embedded_metrics import constants, utils
+from datetime import datetime
+from aws_embedded_metrics import constants, utils, validator
 from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.logger.metric import Metric
 from aws_embedded_metrics.validator import validate_dimension_set, validate_metric
@@ -39,7 +40,7 @@ class MetricsContext(object):
         self.default_dimensions: Dict[str, str] = default_dimensions or {}
         self.metrics: Dict[str, Metric] = {}
         self.should_use_default_dimensions = True
-        self.meta: Dict[str, Any] = {"Timestamp": utils.now()}
+        self.meta: Dict[str, Any] = {constants.TIMESTAMP: utils.now()}
         self.metric_name_and_resolution_map: Dict[str, StorageResolution] = {}
 
     def put_metric(self, key: str, value: float, unit: str = None, storage_resolution: StorageResolution = StorageResolution.STANDARD) -> None:
@@ -176,3 +177,21 @@ class MetricsContext(object):
     @staticmethod
     def empty() -> "MetricsContext":
         return MetricsContext()
+
+    def set_timestamp(self, timestamp: datetime) -> None:
+        """
+        Set the timestamp of metrics emitted in this context. If not set, the timestamp will default to the time the context is constructed.
+
+        Timestamp must meet CloudWatch requirements, otherwise a InvalidTimestampError will be thrown.
+        See [Timestamps](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#about_timestamp)
+        for valid values.
+
+        Parameters:
+            timestamp (datetime): The timestamp value to be set.
+
+        Raises:
+            InvalidTimestampError: If the provided timestamp is invalid.
+
+        """
+        validator.validate_timestamp(timestamp)
+        self.meta[constants.TIMESTAMP] = utils.convert_to_milliseconds(timestamp)

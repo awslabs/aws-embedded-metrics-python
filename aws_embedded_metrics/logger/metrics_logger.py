@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
 from aws_embedded_metrics.environment import Environment
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.validator import validate_namespace
@@ -112,6 +113,10 @@ class MetricsLogger:
             "traceback": traceback_str,
         })
         self.set_property(key, trace_value)
+        return self
+
+    def set_timestamp(self, timestamp: datetime) -> "MetricsLogger":
+        self.context.set_timestamp(timestamp)
         return self
 
     def new(self) -> "MetricsLogger":

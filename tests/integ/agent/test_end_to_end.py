@@ -42,6 +42,7 @@ async def test_end_to_end_tcp_multiple_flushes():
         metrics.put_dimensions({"Operation": "Agent"})
         metrics.put_metric(metric_name, 100, "Milliseconds")
         metrics.set_property("RequestId", "422b1569-16f6-4a03-b8f0-fe3fd9b100f8")
+        metrics.set_timestamp(datetime.utcnow())
 
     # act
     await do_work()

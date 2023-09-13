@@ -17,7 +17,9 @@ from typing import Dict, Optional
 from aws_embedded_metrics.unit import Unit
 from aws_embedded_metrics.storage_resolution import StorageResolution
 from aws_embedded_metrics.exceptions import DimensionSetExceededError, InvalidDimensionError, InvalidMetricError, InvalidNamespaceError
-import aws_embedded_metrics.constants as constants
+from aws_embedded_metrics.exceptions import InvalidTimestampError
+from datetime import datetime
+from aws_embedded_metrics import constants, utils
 
 
 def validate_dimension_set(dimension_set: Dict[str, str]) -> None:
@@ -114,3 +116,32 @@ def validate_namespace(namespace: str) -> None:
 
     if not re.match(constants.VALID_NAMESPACE_REGEX, namespace):
         raise InvalidNamespaceError(f"Namespace contains invalid characters: {namespace}")
+
+
+def validate_timestamp(timestamp: datetime) -> None:
+    """
+    Validates a given timestamp based on CloudWatch Timestamp guidelines.
+
+    Timestamp must meet CloudWatch requirements, otherwise a InvalidTimestampError will be thrown.
+    See [Timestamps](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#about_timestamp)
+    for valid values.
+
+    Parameters:
+        timestamp (datetime): Datetime object representing the timestamp to validate.
+
+    Raises:
+        InvalidTimestampError: If the timestamp is either None, too old, or too far in the future.
+    """
+    if not timestamp:
+        raise InvalidTimestampError("Timestamp must be a valid datetime object")
+
+    given_time_in_milliseconds = utils.convert_to_milliseconds(timestamp)
+    current_time_in_milliseconds = utils.now()
+
+    if given_time_in_milliseconds < (current_time_in_milliseconds - constants.MAX_TIMESTAMP_PAST_AGE):
+        raise InvalidTimestampError(
+            f"Timestamp {str(timestamp)} must not be older than {int(constants.MAX_TIMESTAMP_PAST_AGE/(24 * 60 * 60 * 1000))} days")
+
+    if given_time_in_milliseconds > (current_time_in_milliseconds + constants.MAX_TIMESTAMP_FUTURE_AGE):
+        raise InvalidTimestampError(
+            f"Timestamp {str(timestamp)} must not be newer than {int(constants.MAX_TIMESTAMP_FUTURE_AGE/(60 * 60 * 1000))} hours")

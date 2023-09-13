@@ -1,15 +1,17 @@
+from faker import Faker
+from importlib import reload
+from datetime import datetime, timedelta
 import pytest
 import math
 import random
-from aws_embedded_metrics import constants
+from aws_embedded_metrics import constants, utils
 from aws_embedded_metrics.unit import Unit
 from aws_embedded_metrics.storage_resolution import StorageResolution
 from aws_embedded_metrics import config
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
-from aws_embedded_metrics.constants import DEFAULT_NAMESPACE
+from aws_embedded_metrics.constants import DEFAULT_NAMESPACE, MAX_TIMESTAMP_FUTURE_AGE, MAX_TIMESTAMP_PAST_AGE
 from aws_embedded_metrics.exceptions import DimensionSetExceededError, InvalidDimensionError, InvalidMetricError
-from importlib import reload
-from faker import Faker
+from aws_embedded_metrics.exceptions import InvalidTimestampError
 
 fake = Faker()
 
@@ -456,6 +458,44 @@ def test_cannot_put_more_than_30_dimensions():
 
     with pytest.raises(DimensionSetExceededError):
         context.put_dimensions(dimension_set)
+
+
+@pytest.mark.parametrize(
+    "timestamp",
+    [
+        datetime.now(),
+        datetime.now() - timedelta(milliseconds=MAX_TIMESTAMP_PAST_AGE - 5000),
+        datetime.now() + timedelta(milliseconds=MAX_TIMESTAMP_FUTURE_AGE - 5000)
+    ]
+)
+def test_set_valid_timestamp_verify_timestamp(timestamp: datetime):
+    context = MetricsContext()
+
+    context.set_timestamp(timestamp)
+
+    assert context.meta[constants.TIMESTAMP] == utils.convert_to_milliseconds(timestamp)
+
+
+@pytest.mark.parametrize(
+    "timestamp",
+    [
+        None,
+        datetime.min,
+        datetime(1970, 1, 1, 0, 0, 0),
+        datetime.max,
+        datetime(9999, 12, 31, 23, 59, 59, 999999),
+        datetime(1, 1, 1, 0, 0, 0, 0, None),
+        datetime(1, 1, 1),
+        datetime(1, 1, 1, 0, 0),
+        datetime.now() - timedelta(milliseconds=MAX_TIMESTAMP_PAST_AGE + 1),
+        datetime.now() + timedelta(milliseconds=MAX_TIMESTAMP_FUTURE_AGE + 5000)
+    ]
+)
+def test_set_invalid_timestamp_raises_exception(timestamp: datetime):
+    context = MetricsContext()
+
+    with pytest.raises(InvalidTimestampError):
+        context.set_timestamp(timestamp)
 
 
 # Test utility method

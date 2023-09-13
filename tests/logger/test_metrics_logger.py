@@ -1,4 +1,5 @@
-from aws_embedded_metrics import config
+from datetime import datetime
+from aws_embedded_metrics import config, utils
 from aws_embedded_metrics.logger import metrics_logger
 from aws_embedded_metrics.sinks import Sink
 from aws_embedded_metrics.environment import Environment
@@ -492,6 +493,21 @@ async def test_configure_flush_to_preserve_dimensions(mocker):
     assert len(dimensions) == 1
     assert dimensions[0][dimension_key] == dimension_value
 
+
+@pytest.mark.asyncio
+async def test_can_set_timestamp(mocker):
+    # arrange
+    expected_value = datetime.now()
+
+    logger, sink, env = get_logger_and_sink(mocker)
+
+    # act
+    logger.set_timestamp(expected_value)
+    await logger.flush()
+
+    # assert
+    context = get_flushed_context(sink)
+    assert context.meta[constants.TIMESTAMP] == utils.convert_to_milliseconds(expected_value)
 
 # Test helper methods
 

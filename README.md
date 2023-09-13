@@ -178,6 +178,20 @@ Examples:
 set_namespace("MyApplication")
 ```
 
+- **set_timestamp**(timestamp: datetime) -> MetricsLogger
+
+Sets the timestamp of the metrics. If not set, current time of the client will be used.
+
+Timestamp must meet CloudWatch requirements, otherwise a InvalidTimestampError will be thrown. See [Timestamps](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#about_timestamp) for valid values.
+
+Examples:
+
+```py
+    set_timestamp(datetime.datetime.now())
+```
+
+
+
 - **flush**()
 
 Flushes the current MetricsContext to the configured sink and resets all properties and metric values. The namespace and default dimensions will be preserved across flushes.
