@@ -344,6 +344,35 @@ def test_serialize_metrics_with_aggregation_disabled():
     assert_json_equality(result_json, expected)
 
 
+def test_serialize_metrics_without_metrics_when_only_log_events_with_metrics_true():
+    """Test log records don't contain metadata when aggregation is disabled."""
+    # arrange
+    config = get_config()
+    config.only_log_events_with_metrics = True
+
+    context = get_context()
+
+    # act
+    result_json = serializer.serialize(context)
+
+    # assert
+    assert len(result_json) == 0
+
+
+def test_serialize_metrics_without_metrics_when_only_log_events_with_metrics_false():
+    """Test log records don't contain metadata when aggregation is disabled."""
+    # arrange
+    config = get_config()
+    config.only_log_events_with_metrics = False
+
+    context = get_context()
+
+    # act
+    result_json = serializer.serialize(context)
+
+    # assert
+    assert len(result_json) == 1
+
 # Test utility method
 
 

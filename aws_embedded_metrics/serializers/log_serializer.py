@@ -31,6 +31,11 @@ class LogSerializer(Serializer):
         dimension_keys = []
         dimensions_properties: Dict[str, str] = {}
 
+        # allows users to skip emission entirely if no metrics have been
+        # added to the logger
+        if config.only_log_events_with_metrics and not context.metrics:
+            return []
+
         for dimension_set in context.get_dimensions():
             keys = list(dimension_set.keys())
             if len(keys) > MAX_DIMENSION_SET_SIZE:

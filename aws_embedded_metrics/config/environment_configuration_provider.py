@@ -26,6 +26,7 @@ EC2_METADATA_ENDPOINT = "EC2_METADATA_ENDPOINT"
 NAMESPACE = "NAMESPACE"
 DISABLE_METRIC_EXTRACTION = "DISABLE_METRIC_EXTRACTION"
 ENVIRONMENT_OVERRIDE = "ENVIRONMENT"
+ONLY_LOG_EVENTS_WITH_METRICS = "ONLY_LOG_EVENTS_WITH_METRICS"
 
 
 class EnvironmentConfigurationProvider:
@@ -45,6 +46,7 @@ class EnvironmentConfigurationProvider:
             self.__get_env_var(NAMESPACE),
             self.__get_bool_env_var(DISABLE_METRIC_EXTRACTION),
             self.__get_env_var(ENVIRONMENT_OVERRIDE),
+            self.__get_bool_env_var(ONLY_LOG_EVENTS_WITH_METRICS),
         )
 
     @staticmethod
