@@ -11,13 +11,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any, Callable, TypeVar, cast
 from aws_embedded_metrics.logger.metrics_logger_factory import create_metrics_logger
 import inspect
 import asyncio
 from functools import wraps
 
+F = TypeVar('F', bound=Callable[..., Any])
 
-def metric_scope(fn):  # type: ignore
+
+def metric_scope(fn: F) -> F:
 
     if asyncio.iscoroutinefunction(fn):
 
@@ -33,7 +36,7 @@ def metric_scope(fn):  # type: ignore
             finally:
                 await logger.flush()
 
-        return wrapper
+        return cast(F, wrapper)
     else:
 
         @wraps(fn)
@@ -49,4 +52,4 @@ def metric_scope(fn):  # type: ignore
                 loop = asyncio.get_event_loop()
                 loop.run_until_complete(logger.flush())
 
-        return wrapper
+        return cast(F, wrapper)
