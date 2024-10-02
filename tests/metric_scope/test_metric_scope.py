@@ -168,6 +168,43 @@ def test_sync_scope_sets_time_based_on_when_wrapped_fcn_is_called(mock_logger):
     actual_timestamp_second = int(round(logger.context.meta["Timestamp"] / 1000))
     assert expected_timestamp_second == actual_timestamp_second
 
+
+def test_sync_scope_iterates_generator(mock_logger):
+    expected_results = [1, 2]
+
+    @metric_scope
+    def my_handler():
+        yield from expected_results
+        raise Exception("test exception")
+
+    actual_results = []
+    with pytest.raises(Exception, match="test exception"):
+        for result in my_handler():
+            actual_results.append(result)
+
+    assert actual_results == expected_results
+    assert InvocationTracker.invocations == 3
+
+
+@pytest.mark.asyncio
+async def test_async_scope_iterates_async_generator(mock_logger):
+    expected_results = [1, 2]
+
+    @metric_scope
+    async def my_handler():
+        for item in expected_results:
+            yield item
+            await asyncio.sleep(1)
+        raise Exception("test exception")
+
+    actual_results = []
+    with pytest.raises(Exception, match="test exception"):
+        async for result in my_handler():
+            actual_results.append(result)
+
+    assert actual_results == expected_results
+    assert InvocationTracker.invocations == 3
+
 # Test helpers
 
 

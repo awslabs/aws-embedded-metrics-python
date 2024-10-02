@@ -18,35 +18,70 @@ from functools import wraps
 
 
 def metric_scope(fn):  # type: ignore
-
-    if asyncio.iscoroutinefunction(fn):
-
+    if inspect.isasyncgenfunction(fn):
         @wraps(fn)
-        async def wrapper(*args, **kwargs):  # type: ignore
+        async def async_gen_wrapper(*args, **kwargs):  # type: ignore
             logger = create_metrics_logger()
             if "metrics" in inspect.signature(fn).parameters:
                 kwargs["metrics"] = logger
+
+            try:
+                fn_gen = fn(*args, **kwargs)
+                while True:
+                    result = await fn_gen.__anext__()
+                    await logger.flush()
+                    yield result
+            except Exception as ex:
+                await logger.flush()
+                if not isinstance(ex, StopIteration):
+                    raise
+
+        return async_gen_wrapper
+
+    elif inspect.isgeneratorfunction(fn):
+        @wraps(fn)
+        def gen_wrapper(*args, **kwargs):  # type: ignore
+            logger = create_metrics_logger()
+            if "metrics" in inspect.signature(fn).parameters:
+                kwargs["metrics"] = logger
+
+            try:
+                fn_gen = fn(*args, **kwargs)
+                while True:
+                    result = next(fn_gen)
+                    asyncio.run(logger.flush())
+                    yield result
+            except Exception as ex:
+                asyncio.run(logger.flush())
+                if not isinstance(ex, StopIteration):
+                    raise
+
+        return gen_wrapper
+
+    elif asyncio.iscoroutinefunction(fn):
+        @wraps(fn)
+        async def async_wrapper(*args, **kwargs):  # type: ignore
+            logger = create_metrics_logger()
+            if "metrics" in inspect.signature(fn).parameters:
+                kwargs["metrics"] = logger
+
             try:
                 return await fn(*args, **kwargs)
-            except Exception as e:
-                raise e
             finally:
                 await logger.flush()
 
-        return wrapper
-    else:
+        return async_wrapper
 
+    else:
         @wraps(fn)
         def wrapper(*args, **kwargs):  # type: ignore
             logger = create_metrics_logger()
             if "metrics" in inspect.signature(fn).parameters:
                 kwargs["metrics"] = logger
+
             try:
                 return fn(*args, **kwargs)
-            except Exception as e:
-                raise e
             finally:
-                loop = asyncio.get_event_loop()
-                loop.run_until_complete(logger.flush())
+                asyncio.run(logger.flush())
 
         return wrapper
