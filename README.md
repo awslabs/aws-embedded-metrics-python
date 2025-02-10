@@ -324,7 +324,22 @@ Config = get_config()
 Config.disable_metric_extraction = True
 
 # environment
-AWS_EMF_DISABLE_METRIC_EXTRACTION = true
+AWS_EMF_DISABLE_METRIC_EXTRACTION=true
+```
+
+**ONLY_LOG_EVENTS_WITH_METRICS**: When this property is set to `true`, LogEvents without any metrics
+set will be dropped.
+
+Example:
+
+```py
+# in process
+from aws_embedded_metrics.config import get_config
+Config = get_config()
+Config.only_log_events_with_metrics = True
+
+# environment
+AWS_EMF_ONLY_LOG_EVENTS_WITH_METRICS=true
 ```
 
 ## Examples

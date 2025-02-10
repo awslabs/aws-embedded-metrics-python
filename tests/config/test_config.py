@@ -25,6 +25,7 @@ def test_can_get_config_from_environment(monkeypatch):
     namespace = fake.word()
     disable_metric_extraction = True
     environment_override = fake.word()
+    only_log_events_with_metrics = True
 
     monkeypatch.setenv("AWS_EMF_ENABLE_DEBUG_LOGGING", str(debug_enabled))
     monkeypatch.setenv("AWS_EMF_SERVICE_NAME", service_name)
@@ -36,6 +37,7 @@ def test_can_get_config_from_environment(monkeypatch):
     monkeypatch.setenv("AWS_EMF_NAMESPACE", namespace)
     monkeypatch.setenv("AWS_EMF_DISABLE_METRIC_EXTRACTION", str(disable_metric_extraction))
     monkeypatch.setenv("AWS_EMF_ENVIRONMENT", environment_override)
+    monkeypatch.setenv("AWS_EMF_ONLY_LOG_EVENTS_WITH_METRICS", only_log_events_with_metrics)
 
     # act
     result = get_config()
@@ -51,6 +53,7 @@ def test_can_get_config_from_environment(monkeypatch):
     assert result.namespace == namespace
     assert result.disable_metric_extraction == disable_metric_extraction
     assert result.environment == environment_override
+    assert result.only_log_events_with_metrics == only_log_events_with_metrics
 
 
 def test_can_override_config(monkeypatch):
@@ -65,6 +68,7 @@ def test_can_override_config(monkeypatch):
     monkeypatch.setenv("AWS_EMF_NAMESPACE", fake.word())
     monkeypatch.setenv("AWS_EMF_DISABLE_METRIC_EXTRACTION", str(True))
     monkeypatch.setenv("AWS_EMF_ENVIRONMENT", fake.word())
+    monkeypatch.setenv("AWS_EMF_ONLY_LOG_EVENTS_WITH_METRICS", str(True))
 
     config = get_config()
 
@@ -78,6 +82,7 @@ def test_can_override_config(monkeypatch):
     namespace = fake.word()
     disable_metric_extraction = False
     environment = fake.word()
+    only_log_events_with_metrics = False
 
     # act
     config.debug_logging_enabled = debug_enabled
@@ -90,6 +95,7 @@ def test_can_override_config(monkeypatch):
     config.namespace = namespace
     config.disable_metric_extraction = disable_metric_extraction
     config.environment = environment
+    config.only_log_events_with_metrics = only_log_events_with_metrics
 
     # assert
     assert config.debug_logging_enabled == debug_enabled
@@ -102,3 +108,4 @@ def test_can_override_config(monkeypatch):
     assert config.namespace == namespace
     assert config.disable_metric_extraction == disable_metric_extraction
     assert config.environment == environment
+    assert config.only_log_events_with_metrics == only_log_events_with_metrics
