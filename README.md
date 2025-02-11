@@ -29,7 +29,6 @@ Generate CloudWatch Metrics embedded within structured log events. The embedded 
 ```
 pip3 install aws-embedded-metrics
 ```
-
 ## Usage
 
 To get a metric logger, you can decorate your function with a `metric_scope`:
