@@ -11,7 +11,6 @@ Generate CloudWatch Metrics embedded within structured log events. The embedded 
 - [API](#api)
 - [Examples](#examples)
 - [Development](#development)
-
 ## Use Cases
 
 - **Generate custom metrics across compute environments**
