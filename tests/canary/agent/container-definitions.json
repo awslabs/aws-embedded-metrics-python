@@ -30,7 +30,7 @@
   },
   {
     "name": "cloudwatch-agent-python",
-    "image": "amazon/cloudwatch-agent:latest",
+    "image": "public.ecr.aws/cloudwatch-agent/cloudwatch-agent:latest",
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {
