@@ -19,6 +19,7 @@ from functools import wraps
 
 F = TypeVar('F', bound=Callable[..., Any])
 
+
 def metric_scope(fn: F) -> F:
     if inspect.isasyncgenfunction(fn):
         @wraps(fn)
@@ -38,7 +39,7 @@ def metric_scope(fn: F) -> F:
                 if not isinstance(ex, StopIteration):
                     raise
 
-        return async_gen_wrapper
+        return cast(F, async_gen_wrapper)
 
     elif inspect.isgeneratorfunction(fn):
         @wraps(fn)
