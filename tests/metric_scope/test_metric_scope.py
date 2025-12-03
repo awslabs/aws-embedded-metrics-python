@@ -183,7 +183,7 @@ async def test_async_generator_completes_successfully(mock_logger):
         actual_results.append(result)
 
     assert actual_results == expected_results
-    assert InvocationTracker.invocations == 4  # 3 yields + 1 final flush
+    assert InvocationTracker.invocations == 1
 
 
 def test_sync_generator_completes_successfully(mock_logger):
@@ -198,7 +198,7 @@ def test_sync_generator_completes_successfully(mock_logger):
         actual_results.append(result)
 
     assert actual_results == expected_results
-    assert InvocationTracker.invocations == 4  # 3 yields + 1 final flush
+    assert InvocationTracker.invocations == 1
 
 def test_sync_generator_handles_exception(mock_logger):
     expected_results = [1, 2]
@@ -214,7 +214,7 @@ def test_sync_generator_handles_exception(mock_logger):
             actual_results.append(result)
 
     assert actual_results == expected_results
-    assert InvocationTracker.invocations == 3
+    assert InvocationTracker.invocations == 1
 
 
 @pytest.mark.asyncio
@@ -234,7 +234,7 @@ async def test_async_generator_handles_exception(mock_logger):
             actual_results.append(result)
 
     assert actual_results == expected_results
-    assert InvocationTracker.invocations == 3
+    assert InvocationTracker.invocations == 1
 
 # Test helpers
 

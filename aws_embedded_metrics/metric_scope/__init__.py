@@ -30,7 +30,6 @@ def metric_scope(fn: F) -> F:
 
             try:
                 async for result in fn(*args, **kwargs):
-                    await logger.flush()
                     yield result
             finally:
                 await logger.flush()
@@ -46,7 +45,6 @@ def metric_scope(fn: F) -> F:
 
             try:
                 for result in fn(*args, **kwargs):
-                    asyncio.run(logger.flush())
                     yield result
             finally:
                 asyncio.run(logger.flush())
