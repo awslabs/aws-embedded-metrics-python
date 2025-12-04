@@ -61,7 +61,7 @@ async def resolve_environment() -> Environment:
             is_environment = await env_under_test.probe()
         except Exception as e:
             log.error(
-                "Failed to detect enironment: %s", env_under_test.__class__.__name__, e
+                "Failed to detect environment: %s Exception: %s", env_under_test.__class__.__name__, e
             )
             pass
 
