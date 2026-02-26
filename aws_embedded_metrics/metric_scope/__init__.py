@@ -29,15 +29,10 @@ def metric_scope(fn: F) -> F:
                 kwargs["metrics"] = logger
 
             try:
-                fn_gen = fn(*args, **kwargs)
-                while True:
-                    result = await fn_gen.__anext__()
-                    await logger.flush()
+                async for result in fn(*args, **kwargs):
                     yield result
-            except Exception as ex:
+            finally:
                 await logger.flush()
-                if not isinstance(ex, StopIteration):
-                    raise
 
         return cast(F, async_gen_wrapper)
 
@@ -49,15 +44,10 @@ def metric_scope(fn: F) -> F:
                 kwargs["metrics"] = logger
 
             try:
-                fn_gen = fn(*args, **kwargs)
-                while True:
-                    result = next(fn_gen)
-                    asyncio.run(logger.flush())
+                for result in fn(*args, **kwargs):
                     yield result
-            except Exception as ex:
+            finally:
                 asyncio.run(logger.flush())
-                if not isinstance(ex, StopIteration):
-                    raise
 
         return cast(F, gen_wrapper)
 
