@@ -27,6 +27,7 @@ class Configuration:
         namespace: str = None,
         disable_metric_extraction: bool = False,
         environment: Optional[str] = None,
+        only_log_events_with_metrics: bool = False,
     ):
         self.debug_logging_enabled = debug_logging_enabled
         self.service_name = service_name
@@ -38,3 +39,4 @@ class Configuration:
         self.namespace = namespace
         self.disable_metric_extraction = disable_metric_extraction
         self.environment = environment
+        self.only_log_events_with_metrics = only_log_events_with_metrics
