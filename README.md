@@ -107,7 +107,7 @@ Adds a new set of dimensions that will be associated to all metric values.
 
 **WARNING**: Every distinct value will result in a new CloudWatch Metric.
 If the cardinality of a particular value is expected to be high, you should consider
-using `setProperty` instead.
+using `set_property` instead.
 
 Requirements:
 
@@ -128,7 +128,7 @@ Explicitly override all dimensions. By default, this will disable the default di
 
 **WARNING**: Every distinct value will result in a new CloudWatch Metric.
 If the cardinality of a particular value is expected to be high, you should consider
-using `setProperty` instead.
+using `set_property` instead.
 
 Requirements:
 
