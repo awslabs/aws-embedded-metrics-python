@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from importlib.metadata import version as get_version
 from typing import Optional
 
 
@@ -37,4 +38,14 @@ class Configuration:
         self.ec2_metadata_endpoint = ec2_metadata_endpoint
         self.namespace = namespace
         self.disable_metric_extraction = disable_metric_extraction
+        self.default_flush_on_yield = Configuration._get_default_flush_on_yield()
         self.environment = environment
+
+    @staticmethod
+    def _get_default_flush_on_yield() -> bool:
+        try:
+            pkg_version = get_version("aws-embedded-metrics")
+            major = int(pkg_version.split(".")[0])
+            return major < 4
+        except Exception:
+            return True

@@ -1,5 +1,6 @@
 from aws_embedded_metrics.metric_scope import metric_scope
 from aws_embedded_metrics.logger.metrics_logger import MetricsLogger
+from aws_embedded_metrics.config import get_config
 import asyncio
 import time
 import pytest
@@ -183,6 +184,7 @@ async def test_async_generator_completes_successfully(mock_logger):
         actual_results.append(result)
 
     assert actual_results == expected_results
+    # TODO in v4: change to 1 — default_flush_on_yield becomes False, flushing only once at completion
     assert InvocationTracker.invocations == 4  # 3 yields + 1 final flush
 
 
@@ -198,6 +200,7 @@ def test_sync_generator_completes_successfully(mock_logger):
         actual_results.append(result)
 
     assert actual_results == expected_results
+    # TODO in v4: change to 1 — default_flush_on_yield becomes False, flushing only once at completion
     assert InvocationTracker.invocations == 4  # 3 yields + 1 final flush
 
 def test_sync_generator_handles_exception(mock_logger):
@@ -214,6 +217,7 @@ def test_sync_generator_handles_exception(mock_logger):
             actual_results.append(result)
 
     assert actual_results == expected_results
+    # TODO in v4: change to 1 — default_flush_on_yield becomes False, flushing only once at completion
     assert InvocationTracker.invocations == 3
 
 
@@ -234,7 +238,87 @@ async def test_async_generator_handles_exception(mock_logger):
             actual_results.append(result)
 
     assert actual_results == expected_results
+    # TODO in v4: change to 1 — default_flush_on_yield becomes False, flushing only once at completion
     assert InvocationTracker.invocations == 3
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("flush_on_yield, expected_num_of_flushes", [(True, 4), (False, 1)])
+async def test_async_generator_flush_on_yield_set_via_decorator(mock_logger, flush_on_yield, expected_num_of_flushes):
+    expected_results = [1, 2, 3]
+
+    @metric_scope(flush_on_yield=flush_on_yield)
+    async def my_handler():
+        for item in expected_results:
+            yield item
+
+    actual_results = []
+    async for result in my_handler():
+        actual_results.append(result)
+
+    assert actual_results == expected_results
+    assert InvocationTracker.invocations == expected_num_of_flushes
+
+
+@pytest.mark.parametrize("flush_on_yield, expected_num_of_flushes", [(True, 4), (False, 1)])
+def test_sync_generator_flush_on_yield_set_via_decorator(mock_logger, flush_on_yield, expected_num_of_flushes):
+    expected_results = [1, 2, 3]
+
+    @metric_scope(flush_on_yield=flush_on_yield)
+    def my_handler():
+        yield from expected_results
+
+    actual_results = []
+    for result in my_handler():
+        actual_results.append(result)
+
+    assert actual_results == expected_results
+    assert InvocationTracker.invocations == expected_num_of_flushes
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("flush_on_yield, expected_num_of_flushes", [(True, 4), (False, 1)])
+async def test_async_generator_respects_default_config_flush_on_yield(mock_logger, flush_on_yield, expected_num_of_flushes):
+    original_flush_on_yield = get_config().default_flush_on_yield
+    get_config().default_flush_on_yield = flush_on_yield
+    try:
+        expected_results = [1, 2, 3]
+
+        @metric_scope
+        async def my_handler():
+            for item in expected_results:
+                yield item
+
+        actual_results = []
+        async for result in my_handler():
+            actual_results.append(result)
+
+        assert actual_results == expected_results
+        assert InvocationTracker.invocations == expected_num_of_flushes
+    finally:
+        get_config().default_flush_on_yield = original_flush_on_yield
+
+
+@pytest.mark.parametrize("flush_on_yield, expected_num_of_flushes", [(True, 4), (False, 1)])
+def test_sync_generator_respects_default_config_flush_on_yield(mock_logger, flush_on_yield, expected_num_of_flushes):
+    original_flush_on_yield = get_config().default_flush_on_yield
+    get_config().default_flush_on_yield = flush_on_yield
+    try:
+        expected_results = [1, 2, 3]
+
+        @metric_scope
+        def my_handler():
+            yield from expected_results
+
+        actual_results = []
+        for result in my_handler():
+            actual_results.append(result)
+
+        assert actual_results == expected_results
+        assert InvocationTracker.invocations == expected_num_of_flushes
+    finally:
+        get_config().default_flush_on_yield = original_flush_on_yield
+
 
 # Test helpers
 
