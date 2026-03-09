@@ -200,6 +200,7 @@ def test_sync_generator_completes_successfully(mock_logger):
     assert actual_results == expected_results
     assert InvocationTracker.invocations == 4  # 3 yields + 1 final flush
 
+
 def test_sync_generator_handles_exception(mock_logger):
     expected_results = [1, 2]
 
