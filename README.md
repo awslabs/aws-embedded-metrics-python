@@ -50,6 +50,12 @@ def my_handler(metrics):
     return {"message": "Hello!"}
 ```
 
+### Generator Support
+
+The `metric_scope` decorator supports both sync and async generators. By default in v3.x, metrics are flushed after each `yield`, which is suitable for slow generators where you want metrics emitted as early as possible. Starting in v4.0, the default changes to flushing only at completion for better performance with high-throughput generators.
+
+To explicitly control this behavior, pass `flush_on_yield` to the decorator: `@metric_scope(flush_on_yield=False)`.
+
 ## API
 
 ### MetricsLogger

@@ -12,7 +12,10 @@
 # limitations under the License.
 
 from importlib.metadata import version as get_version
+import logging
 from typing import Optional
+
+log = logging.getLogger(__name__)
 
 
 class Configuration:
@@ -47,5 +50,9 @@ class Configuration:
             pkg_version = get_version("aws-embedded-metrics")
             major = int(pkg_version.split(".")[0])
             return major < 4
-        except Exception:
+        except Exception as e:
+            log.warning(
+                "Unable to resolve package version for flush_on_yield default, defaulting to True. "
+                "This may impact performance for fast generators as metrics will flush on every yield. "
+                "If needed, override via @metric_scope(flush_on_yield=False). Error: %s", e)
             return True
