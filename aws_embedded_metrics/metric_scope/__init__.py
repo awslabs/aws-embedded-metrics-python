@@ -93,4 +93,4 @@ def metric_scope(fn: Optional[F] = None, *, flush_on_yield: Optional[bool] = Non
 
     if fn is not None:
         return _build_decorator(fn, flush_on_yield)
-    return lambda x: _build_decorator(x, flush_on_yield)
+    return cast(F, lambda x: _build_decorator(x, flush_on_yield))
