@@ -509,6 +509,39 @@ async def test_can_set_timestamp(mocker):
     context = get_flushed_context(sink)
     assert context.meta[constants.TIMESTAMP] == utils.convert_to_milliseconds(expected_value)
 
+
+def test_flush_sync_sends_context_to_sink(mocker):
+    # arrange
+    from aws_embedded_metrics.environment import environment_detector
+    env = mocker.create_autospec(spec=Environment)
+    sink = mocker.create_autospec(spec=Sink)
+    env.get_sink.return_value = sink
+    env.get_log_group_name.return_value = fake.word()
+    env.get_name.return_value = fake.word()
+    env.get_type.return_value = fake.word()
+
+    environment_detector.EnvironmentCache.environment = env
+
+    reload(config)
+    reload(metrics_logger)
+
+    logger = metrics_logger.MetricsLogger(lambda: None)
+
+    expected_key = fake.word()
+    expected_value = fake.word()
+    logger.set_property(expected_key, expected_value)
+
+    # act
+    logger.flush_sync()
+
+    # assert
+    context = get_flushed_context(sink)
+    assert context.properties[expected_key] == expected_value
+
+    # cleanup
+    environment_detector.EnvironmentCache.environment = None
+
+
 # Test helper methods
 
 

@@ -12,6 +12,8 @@
 # limitations under the License.
 
 import logging
+import asyncio
+import concurrent.futures
 from aws_embedded_metrics import config
 from aws_embedded_metrics.environment import Environment
 from aws_embedded_metrics.environment.default_environment import DefaultEnvironment
@@ -32,6 +34,18 @@ Config = config.get_config()
 
 class EnvironmentCache:
     environment: Optional[Environment] = None
+
+
+def resolve_environment_sync() -> Environment:
+    if EnvironmentCache.environment is not None:
+        return EnvironmentCache.environment
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(resolve_environment())
+    else:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            return pool.submit(asyncio.run, resolve_environment()).result()
 
 
 async def resolve_environment() -> Environment:

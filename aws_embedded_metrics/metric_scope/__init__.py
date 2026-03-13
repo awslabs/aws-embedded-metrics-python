@@ -49,10 +49,10 @@ def _build_decorator(fn: F, flush_on_yield: bool) -> F:
             try:
                 for result in fn(*args, **kwargs):
                     if flush_on_yield:
-                        asyncio.run(logger.flush())
+                        logger.flush_sync()
                     yield result
             finally:
-                asyncio.run(logger.flush())
+                logger.flush_sync()
 
         return cast(F, gen_wrapper)
 
@@ -80,7 +80,7 @@ def _build_decorator(fn: F, flush_on_yield: bool) -> F:
             try:
                 return fn(*args, **kwargs)
             finally:
-                asyncio.run(logger.flush())
+                logger.flush_sync()
 
         return cast(F, wrapper)
 
