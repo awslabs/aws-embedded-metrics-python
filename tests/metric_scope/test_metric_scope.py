@@ -16,7 +16,12 @@ def mock_logger(mocker):
         print("flush called")
         InvocationTracker.record()
 
+    def flush_sync(self):
+        print("flush_sync called")
+        InvocationTracker.record()
+
     MetricsLogger.flush = flush
+    MetricsLogger.flush_sync = flush_sync
 
 
 @pytest.mark.asyncio
@@ -319,6 +324,43 @@ def test_sync_generator_respects_default_config_flush_on_yield(mock_logger, flus
         assert InvocationTracker.invocations == expected_num_of_flushes
     finally:
         get_config().default_flush_on_yield = original_flush_on_yield
+
+
+@pytest.mark.asyncio
+async def test_sync_scope_works_inside_running_event_loop(mock_logger):
+    # arrange
+    expected_result = True
+
+    @metric_scope
+    def my_handler():
+        return expected_result
+
+    # act
+    actual_result = my_handler()
+
+    # assert
+    assert expected_result == actual_result
+    assert InvocationTracker.invocations == 1
+
+
+@pytest.mark.asyncio
+async def test_sync_generator_works_inside_running_event_loop(mock_logger):
+    # arrange
+    expected_results = [1, 2, 3]
+
+    @metric_scope
+    def my_handler():
+        yield from expected_results
+
+    # act
+    actual_results = []
+    for result in my_handler():
+        actual_results.append(result)
+
+    # assert
+    assert actual_results == expected_results
+    # TODO in v4: change to 1 — default_flush_on_yield becomes False, flushing only once at completion
+    assert InvocationTracker.invocations == 4  # 3 yields + 1 final flush
 
 
 # Test helpers

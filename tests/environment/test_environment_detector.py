@@ -1,4 +1,5 @@
 from faker import Faker
+import asyncio
 import os
 import pytest
 from importlib import reload
@@ -87,3 +88,20 @@ async def test_resolve_environment_returns_override_lambda(before, monkeypatch):
 
     # assert
     assert isinstance(result, LambdaEnvironment)
+
+
+@pytest.mark.asyncio
+async def test_resolve_environment_sync_works_inside_running_event_loop(before, monkeypatch):
+    # arrange
+    monkeypatch.setenv("AWS_EMF_ENVIRONMENT", "default")
+    reload(config)
+    reload(environment_detector)
+    # verify we are inside a running loop
+    loop = asyncio.get_running_loop()
+    assert loop.is_running()
+
+    # act
+    result = environment_detector.resolve_environment_sync()
+
+    # assert
+    assert isinstance(result, DefaultEnvironment)
