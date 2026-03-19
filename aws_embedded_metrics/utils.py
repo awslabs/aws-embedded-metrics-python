@@ -12,7 +12,14 @@
 # limitations under the License.
 
 import time
+from collections.abc import Awaitable
 from datetime import datetime
+from typing import TypeVar
+
+
+T = TypeVar("T")
+
+
 def now() -> int: return int(round(time.time() * 1000))
 
 
@@ -21,3 +28,7 @@ def convert_to_milliseconds(dt: datetime) -> int:
         return 0
 
     return int(round(dt.timestamp() * 1000))
+
+
+async def _await(awaitable: Awaitable[T]) -> T:
+    return await awaitable
