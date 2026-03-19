@@ -105,3 +105,35 @@ async def test_resolve_environment_sync_works_inside_running_event_loop(before, 
 
     # assert
     assert isinstance(result, DefaultEnvironment)
+
+
+def test_resolve_environment_sync_with_async_resolve_env_fn(before):
+    # arrange
+    expected = DefaultEnvironment()
+
+    async def async_resolve():
+        return expected
+
+    # act
+    result = environment_detector.resolve_environment_sync(async_resolve)
+
+    # assert
+    assert result is expected
+
+
+@pytest.mark.asyncio
+async def test_resolve_environment_sync_with_async_resolve_env_fn_inside_running_loop(before):
+    # arrange
+    expected = DefaultEnvironment()
+
+    async def async_resolve():
+        return expected
+
+    loop = asyncio.get_running_loop()
+    assert loop.is_running()
+
+    # act
+    result = environment_detector.resolve_environment_sync(async_resolve)
+
+    # assert
+    assert result is expected

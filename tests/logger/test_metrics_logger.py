@@ -8,7 +8,6 @@ from aws_embedded_metrics.storage_resolution import StorageResolution
 import aws_embedded_metrics.constants as constants
 import pytest
 from faker import Faker
-from asyncio import Future
 from importlib import reload
 import os
 import sys
@@ -512,23 +511,10 @@ async def test_can_set_timestamp(mocker):
 
 def test_flush_sync_sends_context_to_sink(mocker):
     # arrange
-    from aws_embedded_metrics.environment import environment_detector
-    env = mocker.create_autospec(spec=Environment)
-    sink = mocker.create_autospec(spec=Sink)
-    env.get_sink.return_value = sink
-    env.get_log_group_name.return_value = fake.word()
-    env.get_name.return_value = fake.word()
-    env.get_type.return_value = fake.word()
-
-    environment_detector.EnvironmentCache.environment = env
-
-    reload(config)
-    reload(metrics_logger)
-
-    logger = metrics_logger.MetricsLogger(lambda: None)
-
     expected_key = fake.word()
     expected_value = fake.word()
+
+    logger, sink, env = get_logger_and_sink(mocker)
     logger.set_property(expected_key, expected_value)
 
     # act
@@ -537,9 +523,6 @@ def test_flush_sync_sends_context_to_sink(mocker):
     # assert
     context = get_flushed_context(sink)
     assert context.properties[expected_key] == expected_value
-
-    # cleanup
-    environment_detector.EnvironmentCache.environment = None
 
 
 # Test helper methods
@@ -555,10 +538,8 @@ def before():
 def get_logger_and_sink(mocker):
     env = mocker.create_autospec(spec=Environment)
 
-    def env_provider():
-        result_future = Future()
-        result_future.set_result(env)
-        return result_future
+    async def env_provider():
+        return env
 
     sink = mocker.create_autospec(spec=Sink)
     env.get_sink.return_value = sink

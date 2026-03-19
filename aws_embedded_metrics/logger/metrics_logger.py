@@ -16,6 +16,7 @@ from aws_embedded_metrics.environment import Environment
 from aws_embedded_metrics.environment.environment_detector import resolve_environment_sync
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.validator import validate_namespace
+from aws_embedded_metrics.utils import _await
 from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.storage_resolution import StorageResolution
 from typing import Any, Awaitable, Callable, Dict, Tuple
@@ -36,7 +37,7 @@ class MetricsLogger:
         self.flush_preserve_dimensions: bool = False
 
     def flush_sync(self) -> None:
-        environment = resolve_environment_sync()
+        environment = resolve_environment_sync(lambda: _await(self.resolve_environment()))
         self.__flush_with_environment(environment)
 
     async def flush(self) -> None:
