@@ -11,8 +11,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, TypeVar, cast
+from typing import Any, Callable, Optional, TypeVar, cast
 from aws_embedded_metrics.logger.metrics_logger_factory import create_metrics_logger
+from aws_embedded_metrics.config import get_config
 import inspect
 import asyncio
 from functools import wraps
@@ -20,7 +21,7 @@ from functools import wraps
 F = TypeVar('F', bound=Callable[..., Any])
 
 
-def metric_scope(fn: F) -> F:
+def _build_decorator(fn: F, flush_on_yield: bool) -> F:
     if inspect.isasyncgenfunction(fn):
         @wraps(fn)
         async def async_gen_wrapper(*args, **kwargs):  # type: ignore
@@ -29,15 +30,12 @@ def metric_scope(fn: F) -> F:
                 kwargs["metrics"] = logger
 
             try:
-                fn_gen = fn(*args, **kwargs)
-                while True:
-                    result = await fn_gen.__anext__()
-                    await logger.flush()
+                async for result in fn(*args, **kwargs):
+                    if flush_on_yield:
+                        await logger.flush()
                     yield result
-            except Exception as ex:
+            finally:
                 await logger.flush()
-                if not isinstance(ex, StopIteration):
-                    raise
 
         return cast(F, async_gen_wrapper)
 
@@ -49,15 +47,12 @@ def metric_scope(fn: F) -> F:
                 kwargs["metrics"] = logger
 
             try:
-                fn_gen = fn(*args, **kwargs)
-                while True:
-                    result = next(fn_gen)
-                    asyncio.run(logger.flush())
+                for result in fn(*args, **kwargs):
+                    if flush_on_yield:
+                        logger.flush_sync()
                     yield result
-            except Exception as ex:
-                asyncio.run(logger.flush())
-                if not isinstance(ex, StopIteration):
-                    raise
+            finally:
+                logger.flush_sync()
 
         return cast(F, gen_wrapper)
 
@@ -85,6 +80,17 @@ def metric_scope(fn: F) -> F:
             try:
                 return fn(*args, **kwargs)
             finally:
-                asyncio.run(logger.flush())
+                logger.flush_sync()
 
         return cast(F, wrapper)
+
+
+def metric_scope(fn: Optional[F] = None, *, flush_on_yield: Optional[bool] = None) -> F:
+    # fn is Optional to support both @metric_scope and @metric_scope(flush_on_yield=False).
+    # The former passes fn directly, the latter calls metric_scope() first and returns a decorator.
+    if flush_on_yield is None:
+        flush_on_yield = get_config().default_flush_on_yield
+
+    if fn is not None:
+        return _build_decorator(fn, flush_on_yield)
+    return cast(F, lambda x: _build_decorator(x, flush_on_yield))

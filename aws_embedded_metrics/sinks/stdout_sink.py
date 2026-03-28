@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.sinks import Sink
 from aws_embedded_metrics.serializers import Serializer
@@ -24,7 +25,7 @@ class StdoutSink(Sink):
     def accept(self, context: MetricsContext) -> None:
         for serialized_content in self.serializer.serialize(context):
             if serialized_content:
-                print(serialized_content)
+                sys.stdout.write(serialized_content + "\n")
 
     @staticmethod
     def name() -> str:

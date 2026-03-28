@@ -119,8 +119,9 @@ class InProcessAgent(object):
     def shutdown(self):
         try:
             self.is_shutdown = True
-            self.connection.shutdown(socket.SHUT_RDWR)
-            self.connection.close()
+            if hasattr(self, 'connection'):
+                self.connection.shutdown(socket.SHUT_RDWR)
+                self.connection.close()
             self.sock.close()
         except Exception as e:
             log.error("Failed to shutdown %s" % (e,))

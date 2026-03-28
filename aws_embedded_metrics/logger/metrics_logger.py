@@ -13,8 +13,10 @@
 
 from datetime import datetime
 from aws_embedded_metrics.environment import Environment
+from aws_embedded_metrics.environment.environment_detector import resolve_environment_sync
 from aws_embedded_metrics.logger.metrics_context import MetricsContext
 from aws_embedded_metrics.validator import validate_namespace
+from aws_embedded_metrics.utils import _await
 from aws_embedded_metrics.config import get_config
 from aws_embedded_metrics.storage_resolution import StorageResolution
 from typing import Any, Awaitable, Callable, Dict, Tuple
@@ -34,17 +36,21 @@ class MetricsLogger:
         self.context: MetricsContext = context or MetricsContext.empty()
         self.flush_preserve_dimensions: bool = False
 
+    def flush_sync(self) -> None:
+        environment = resolve_environment_sync(lambda: _await(self.resolve_environment()))
+        self.__flush_with_environment(environment)
+
     async def flush(self) -> None:
         # resolve the environment and get the sink
         # MOST of the time this will run synchonrously
         # This only runs asynchronously if executing for the
         # first time in a non-lambda environment
         environment = await self.resolve_environment()
+        self.__flush_with_environment(environment)
 
+    def __flush_with_environment(self, environment: Environment) -> None:
         self.__configure_context_for_environment(environment)
         sink = environment.get_sink()
-
-        # accept and reset the context
         sink.accept(self.context)
         self.context = self.context.create_copy_with_context(self.flush_preserve_dimensions)
 
