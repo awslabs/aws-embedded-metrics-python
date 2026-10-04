@@ -202,6 +202,7 @@ Examples:
 
 Flushes the current MetricsContext to the configured sink and resets all properties and metric values. The namespace and default dimensions will be preserved across flushes.
 Custom dimensions are **not** preserved by default, but this behavior can be changed by setting `logger.flush_preserve_dimensions = True`, so that custom dimensions would be preserved after each flushing thereafter.
+When preservation is enabled, the `use_default` setting is also retained, so disabled default dimensions remain disabled across flushes.
 
 Example:
 
