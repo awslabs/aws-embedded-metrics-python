@@ -60,7 +60,6 @@ class LogSerializer(Serializer):
 
         current_body: Dict[str, Any] = {}
         event_batches: List[str] = []
-        num_metrics_in_current_body = 0
 
         # Track if any given metric has data remaining to be serialized
         remaining_data = True
@@ -71,6 +70,7 @@ class LogSerializer(Serializer):
         while remaining_data:
             remaining_data = False
             current_body = create_body()
+            num_metrics_in_current_body = 0
 
             for metric_name, metric in context.metrics.items():
                 # ensure we don't add duplicates of metrics we already completed
