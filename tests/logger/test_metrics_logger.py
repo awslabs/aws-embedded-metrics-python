@@ -494,6 +494,24 @@ async def test_configure_flush_to_preserve_dimensions(mocker):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("use_default", [False, True])
+@pytest.mark.parametrize("custom_dimensions", [[], [{"Route": "/orders"}]])
+async def test_preserved_dimensions_remain_identical_across_flushes(mocker, use_default, custom_dimensions):
+    logger, sink, env = get_logger_and_sink(mocker)
+    logger.set_dimensions(*custom_dimensions, use_default=use_default)
+    logger.flush_preserve_dimensions = True
+
+    await logger.flush()
+    expected_dimensions = get_flushed_context(sink).get_dimensions()
+
+    for value in range(2):
+        sink.accept.reset_mock()
+        logger.put_metric("Requests", value)
+        await logger.flush()
+        assert get_flushed_context(sink).get_dimensions() == expected_dimensions
+
+
+@pytest.mark.asyncio
 async def test_can_set_timestamp(mocker):
     # arrange
     expected_value = datetime.now()
