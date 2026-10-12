@@ -1,5 +1,8 @@
 FROM public.ecr.aws/docker/library/python:3.12-slim
 
+# Apply latest Debian security updates to clear out-of-SLA OS-package CVEs
+RUN apt-get update && apt-get -y upgrade && rm -rf /var/lib/apt/lists/*
+
 RUN mkdir /app
 WORKDIR /app
 
