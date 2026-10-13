@@ -12,9 +12,8 @@
 # limitations under the License.
 
 import time
-from collections.abc import Awaitable
 from datetime import datetime
-from typing import TypeVar
+from typing import TypeVar, Awaitable
 
 
 T = TypeVar("T")
