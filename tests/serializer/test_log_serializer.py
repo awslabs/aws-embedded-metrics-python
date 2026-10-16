@@ -208,10 +208,14 @@ def test_serialize_more_than_100_datapoints():
         assert len(result_obj[metric_name]) == expected_datapoint_count
 
 
-def test_serialize_with_more_than_100_metrics_and_datapoints():
-    expected_batches = 11
-    datapoints = 295
-    metrics = 295
+@pytest.mark.parametrize("metrics,datapoints,expected_batches", [
+    (295, 295, 9),
+    (51, 101, 2),
+    (99, 101, 2),
+    (100, 101, 2),
+    (1, 201, 3),
+])
+def test_serialize_with_multiple_metric_and_datapoint_batches(metrics, datapoints, expected_batches):
 
     expected_results = {}
     metric_results = {}
@@ -234,6 +238,9 @@ def test_serialize_with_more_than_100_metrics_and_datapoints():
     datapoints_count = Counter()
     for batch in results:
         result = json.loads(batch)
+        definitions = result["_aws"]["CloudWatchMetrics"][0]["Metrics"]
+        assert 0 < len(definitions) <= 100
+        assert all(0 < len(result[definition["Name"]]) <= 100 for definition in definitions)
         datapoints_count.update({
             metric: len(result[metric])
             for metric in result if metric != "_aws"
