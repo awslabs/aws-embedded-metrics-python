@@ -170,9 +170,12 @@ class MetricsContext(object):
         new_default_dimensions: Dict = {}
         new_default_dimensions.update(self.default_dimensions)
 
-        return MetricsContext(
+        new_context = MetricsContext(
             self.namespace, new_properties, new_dimensions, new_default_dimensions
         )
+        if preserve_dimensions:
+            new_context.should_use_default_dimensions = self.should_use_default_dimensions
+        return new_context
 
     @staticmethod
     def empty() -> "MetricsContext":
