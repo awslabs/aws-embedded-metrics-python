@@ -50,10 +50,10 @@ def validate_dimension_set(dimension_set: Dict[str, str]) -> None:
         if len(value) > constants.MAX_DIMENSION_VALUE_LENGTH:
             raise InvalidDimensionError(f"Dimension value cannot be longer than {constants.MAX_DIMENSION_VALUE_LENGTH} characters")
 
-        if not name.isascii():
+        if not name.isascii() or not name.isprintable():
             raise InvalidDimensionError(f"Dimension name contains invalid characters: {name}")
 
-        if not value.isascii():
+        if not value.isascii() or not value.isprintable():
             raise InvalidDimensionError(f"Dimension value contains invalid characters: {value}")
 
         if name.startswith(":"):

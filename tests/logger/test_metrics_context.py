@@ -507,3 +507,20 @@ def generate_dimension_set(dimensions_to_add):
         dimension_set[f"{i}"] = fake.word()
 
     return dimension_set
+
+
+@pytest.mark.parametrize("control", ["\x00", "\t", "\n", "\x7f"])
+@pytest.mark.parametrize("field", ["name", "value"])
+def test_put_dimensions_rejects_ascii_control_characters(control, field):
+    dimension = {"Service" + control: "checkout"} if field == "name" else {"Service": "checkout" + control}
+    context = MetricsContext()
+    with pytest.raises(InvalidDimensionError):
+        context.put_dimensions(dimension)
+    assert context.get_dimensions() == []
+
+
+@pytest.mark.parametrize("dimension", [{"Service Name": "Checkout API"}, {"!Service~": "!Checkout~"}])
+def test_put_dimensions_preserves_printable_ascii(dimension):
+    context = MetricsContext()
+    context.put_dimensions(dimension)
+    assert context.get_dimensions() == [dimension]
