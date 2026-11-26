@@ -70,7 +70,7 @@ Requirements:
 
 - Name Length 1-255 characters
 - Name must be ASCII characters only
-- Values must be in the range of 8.515920e-109 to 1.174271e+108. In addition, special values (for example, NaN, +Infinity, -Infinity) are not supported.
+- Values must be numbers in the inclusive range `-(2 ** 360)` to `2 ** 360`. Booleans and special values (for example, NaN, +Infinity, -Infinity) are not supported. See the [EMF metric-target requirements](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Embedded_Metric_Format_Specification.html#CloudWatch_Embedded_Metric_Format_Specification_structure_target).
 - Metrics must meet CloudWatch Metrics requirements, otherwise a `InvalidMetricError` will be thrown. See [MetricDatum](https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_MetricDatum.html) for valid values.
 
 - ##### Storage Resolution

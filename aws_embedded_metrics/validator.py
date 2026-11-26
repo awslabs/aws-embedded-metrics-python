@@ -84,8 +84,15 @@ def validate_metric(name: str,
     if len(name) > constants.MAX_DIMENSION_NAME_LENGTH:
         raise InvalidMetricError(f"Metric name cannot be longer than {constants.MAX_DIMENSION_NAME_LENGTH} characters")
 
-    if not math.isfinite(value):
+    if isinstance(value, bool):
+        raise InvalidMetricError("Metric value must not be a boolean")
+
+    # Integers are finite even when converting them to float would overflow.
+    if not isinstance(value, int) and not math.isfinite(value):
         raise InvalidMetricError("Metric value must be finite")
+
+    if not constants.MIN_METRIC_VALUE <= value <= constants.MAX_METRIC_VALUE:
+        raise InvalidMetricError("Metric value must be between -2^360 and 2^360")
 
     if unit is not None and unit not in Unit:
         raise InvalidMetricError(f"Metric unit is not valid: {unit}")
