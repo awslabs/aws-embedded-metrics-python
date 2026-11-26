@@ -5,7 +5,9 @@ from aws_embedded_metrics.sinks import Sink
 from aws_embedded_metrics.environment import Environment
 from aws_embedded_metrics.exceptions import InvalidNamespaceError, InvalidMetricError
 from aws_embedded_metrics.storage_resolution import StorageResolution
+from aws_embedded_metrics.serializers.log_serializer import LogSerializer
 import aws_embedded_metrics.constants as constants
+import json
 import pytest
 from faker import Faker
 from importlib import reload
@@ -523,6 +525,77 @@ def test_flush_sync_sends_context_to_sink(mocker):
     # assert
     context = get_flushed_context(sink)
     assert context.properties[expected_key] == expected_value
+
+
+@pytest.mark.parametrize("key", ["New", "Existing"])
+@pytest.mark.parametrize("value", [
+    pytest.param(True, id="true"),
+    pytest.param(False, id="false"),
+    pytest.param(2 ** 360 + 1, id="integer-above-max"),
+    pytest.param(-(2 ** 360 + 1), id="integer-below-min"),
+    pytest.param(float.fromhex("0x1.0000000000001p+360"), id="float-above-max"),
+    pytest.param(-float.fromhex("0x1.0000000000001p+360"), id="float-below-min"),
+    pytest.param(2 ** 1024, id="large-integer"),
+    pytest.param(-(2 ** 1024), id="large-negative-integer"),
+])
+@pytest.mark.asyncio
+async def test_put_metric_rejects_invalid_numeric_targets_without_changing_state(mocker, key, value):
+    logger, sink, env = get_logger_and_sink(mocker)
+    env.get_name.return_value = "service"
+    env.get_type.return_value = "test"
+    env.get_log_group_name.return_value = "group"
+    logger.set_property("Enabled", True).set_property("Disabled", False)
+    logger.put_metric("Existing", 1)
+    resolution = StorageResolution.HIGH if key == "New" else StorageResolution.STANDARD
+
+    with pytest.raises(InvalidMetricError):
+        logger.put_metric(key, value, storage_resolution=resolution)
+
+    sink.accept.assert_not_called()
+    logger.put_metric("Existing", 2)
+    logger.put_metric("New", 3, storage_resolution=StorageResolution.STANDARD)
+    await logger.flush()
+
+    payload = json.loads(LogSerializer.serialize(get_flushed_context(sink))[0])
+    assert payload["Existing"] == [1, 2]
+    assert payload["New"] == 3
+    assert payload["Enabled"] is True
+    assert payload["Disabled"] is False
+
+
+@pytest.mark.parametrize("value", [
+    0, -0.0, 1, -1, 1.25, -1.25,
+    pytest.param(2 ** 360, id="max-integer"),
+    pytest.param(-(2 ** 360), id="min-integer"),
+    pytest.param(float(2 ** 360), id="max-float"),
+    pytest.param(-float(2 ** 360), id="min-float"),
+    pytest.param(1e-200, id="small-finite"),
+])
+@pytest.mark.asyncio
+async def test_put_metric_accepts_numeric_targets_and_preserves_boolean_properties(mocker, value):
+    logger, sink, env = get_logger_and_sink(mocker)
+    env.get_name.return_value = "service"
+    env.get_type.return_value = "test"
+    env.get_log_group_name.return_value = "group"
+    logger.set_property("Enabled", True).set_property("Disabled", False)
+
+    logger.put_metric("Scalar", value)
+    logger.put_metric("Repeated", value).put_metric("Repeated", value)
+    await logger.flush()
+
+    payload = json.loads(LogSerializer.serialize(get_flushed_context(sink))[0])
+    assert payload["Scalar"] == value
+    assert payload["Repeated"] == [value, value]
+    assert payload["Enabled"] is True
+    assert payload["Disabled"] is False
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+def test_put_metric_preserves_nonfinite_value_error(mocker, value):
+    logger, _, _ = get_logger_and_sink(mocker)
+
+    with pytest.raises(InvalidMetricError, match="^Metric value must be finite$"):
+        logger.put_metric("Value", value)
 
 
 # Test helper methods
